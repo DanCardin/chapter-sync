@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.git/
+.github/
+
+.DS_Store
+
+*.epub
+*.json
+*.sqlite
