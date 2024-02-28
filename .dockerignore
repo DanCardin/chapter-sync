@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+__pycache__/
+.git/
+.github/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+.DS_Store
+.coverage
+coverage.xml
+
+*.epub
+*.json
+*.sqlite
