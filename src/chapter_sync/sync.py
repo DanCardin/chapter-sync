@@ -47,6 +47,9 @@ def sync(
         status.start()
 
     query = select(Series).options(selectinload(Series.chapters))
+    if command.series:
+        query.where(Series.id.in_(command.series))
+
     series = database.scalars(query).all()
 
     status.update(f"Found {len(series)} series")

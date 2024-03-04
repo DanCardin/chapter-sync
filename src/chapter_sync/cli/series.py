@@ -27,6 +27,11 @@ class Add:
         str, Doc("The root URL of the series, from which chapters are found.")
     ]
 
+    auto: Annotated[
+        bool,
+        cappa.Arg(long="--auto-infer/--no-auto-infer"),
+        Doc("Whether to automatically infer series attributes"),
+    ] = True
     author: Annotated[
         str | None,
         cappa.Arg(short=True, long=True),
@@ -46,10 +51,14 @@ class Add:
     ] = None
 
     type: Annotated[
-        HandlerTypes,
+        HandlerTypes | None,
         cappa.Arg(short=True, long=True),
-        Doc("One of the built-in types of series handlers. Defaults to 'custom'."),
-    ] = "custom"
+        Doc(
+            "One of the built-in types of series handlers. "
+            "Defaults automatic detection of supported handlers, "
+            "falling back to 'custom' for unsupported domains."
+        ),
+    ] = None
     settings: Annotated[
         str | None,
         cappa.Arg(short=True, long=True),

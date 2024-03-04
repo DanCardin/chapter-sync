@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     LargeBinary,
+    MetaData,
     String,
     Text,
     UniqueConstraint,
@@ -28,9 +29,11 @@ from sqlalchemy.orm import (
 
 from chapter_sync.handlers.base import HandlerTypes
 
+metadata = MetaData()
+
 
 class Base(DeclarativeBase):
-    ...
+    metadata = metadata
 
 
 class Series(Base):
@@ -40,7 +43,9 @@ class Series(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     type: Mapped[HandlerTypes] = mapped_column(String, nullable=False)
 
-    id: Mapped[int | None] = mapped_column(Integer, primary_key=True, default=None)
+    id: Mapped[int | None] = mapped_column(
+        Integer, primary_key=True, default=None, nullable=False
+    )
     title: Mapped[str] = mapped_column(String, nullable=False, default=None)
     author: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     cover_url: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)

@@ -5,6 +5,7 @@ from typing import Any
 
 from rich import console
 from rich.markup import escape
+from rich.prompt import Confirm
 from rich.status import Status
 from rich.table import Table
 from rich.theme import Theme
@@ -53,6 +54,10 @@ class Console(console.Console):
         for row in rows:
             table.add_row(*(str(c) for c in row))
         self.print(table)
+
+
+def confirm(message: str) -> bool:
+    return Confirm.ask(message)
 
 
 def render_datetime(d: datetime | None, include_minutes=False) -> str:

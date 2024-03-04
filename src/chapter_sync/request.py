@@ -20,7 +20,7 @@ def get_soup(
     session: Session,
     url,
     *,
-    status: Status,
+    status: Status | None = None,
     method="html5lib",
     retry=3,
     retry_delay=10,
@@ -40,9 +40,10 @@ def get_soup(
             if "Retry-After" in page.headers:
                 real_delay = int(page.headers["Retry-After"])
 
-            status.update(
-                f"Load failed: waiting {real_delay} to retry ({page.status_code}: {page.url})",
-            )
+            if status:
+                status.update(
+                    f"Load failed: waiting {real_delay} to retry ({page.status_code}: {page.url})",
+                )
             time.sleep(real_delay)
 
             return get_soup(

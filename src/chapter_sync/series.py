@@ -6,14 +6,15 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import cappa
+from requests import Session as RequestsSession
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from chapter_sync.cli.base import console, database
+from chapter_sync.cli.base import console, database, requests
 from chapter_sync.cli.series import Add, Export, List, Remove, Set, Subscribe
 from chapter_sync.console import Console
 from chapter_sync.epub import Epub
-from chapter_sync.handlers import get_settings_handler
+from chapter_sync.handlers import detect, get_infer_handler, get_settings_handler
 from chapter_sync.schema import EmailSubscriber, Series
 
 
@@ -21,6 +22,7 @@ def add(
     command: Add,
     database: Annotated[Session, cappa.Dep(database)],
     console: Annotated[Console, cappa.Dep(console)],
+    requests: Annotated[RequestsSession, cappa.Dep(requests)],
 ):
     conflicts = database.scalars(
         select(Series).where(Series.name == command.name)
@@ -31,22 +33,39 @@ def add(
             code=1,
         )
 
+    series_type = detect(command.url) if command.type is None else command.type
+
     raw_settings = None
     if command.settings:
         raw_settings = command.settings
     elif command.file:
         raw_settings = command.file.read_text()
 
-    settings_handler = get_settings_handler(command.type)
+    settings_handler = get_settings_handler(series_type)
     settings = settings_handler(raw_settings)
+
+    title = command.title
+    author = command.author
+    cover_url = command.cover_url
+    if command.auto:
+        infer_handler = get_infer_handler(series_type)
+        if infer_handler:
+            _title, _author, _cover_url = infer_handler(requests, command.url, settings)
+
+            if title is None:
+                title = _title
+            if author is None:
+                author = _author
+            if cover_url is None:
+                cover_url = _cover_url
 
     series = Series(
         name=command.name,
         url=command.url,
-        cover_url=command.cover_url,
-        title=command.title or command.name,
-        author=command.author,
-        type=command.type,
+        cover_url=cover_url,
+        title=title or command.name,
+        author=author,
+        type=series_type,
         settings=asdict(settings),
     )
     database.add(series)

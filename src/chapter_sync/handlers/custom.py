@@ -155,6 +155,8 @@ def _collect_chapter(
         return
 
     clean_namespaced_elements(soup)
+    clean_emails(soup)
+    strip_colors(soup)
 
     for content in soup.select(settings.content_selector):
         if settings.filter_selector:
@@ -170,9 +172,6 @@ def _collect_chapter(
             content = content.select(settings.content_text_selector)[0]
 
         content.name = "div"
-
-        clean_emails(soup)
-        strip_colors(soup)
 
         assert title
         time = now()
