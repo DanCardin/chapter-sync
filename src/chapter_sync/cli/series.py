@@ -98,8 +98,10 @@ class Subscribe:
     """Add a subscriber to the given series."""
 
     series: Annotated[int, Doc("The 'id' of the series to subscribe to")]
-    email: Annotated[
-        str, cappa.Arg(short=True, long=True), Doc("The email to send the update to.")
+    subscriber: Annotated[
+        str,
+        cappa.Arg(short=True, long=True),
+        Doc("The id of the subscriber to send the update to."),
     ]
 
 

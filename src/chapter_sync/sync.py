@@ -14,7 +14,7 @@ from chapter_sync.email import EmailClient
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import get_chapter_handler, get_settings_handler
 from chapter_sync.request import requests_session
-from chapter_sync.schema import Series
+from chapter_sync.schema import ChapterSendEvent, Series
 
 
 def watch(
@@ -48,18 +48,18 @@ def sync(
 
     query = select(Series).options(selectinload(Series.chapters))
     if command.series:
-        query.where(Series.id.in_(command.series))
+        query = query.where(Series.id.in_(command.series))
 
     series = database.scalars(query).all()
 
     status.update(f"Found {len(series)} series")
 
     for s in series:
-        if not command.no_update:
+        if command.update:
             update_series(database, s, status)
             status.update(f"Updated series: '{s.name}'")
 
-        if not command.no_send:
+        if command.send:
             send_series(command, database, s, email_client, status)
 
     status.update("Done")
@@ -88,24 +88,38 @@ def send_series(
 ):
     for chapter in series.chapters:
         status.update(f"Saving chapter: '{chapter.title}'")
-        epub = Epub.from_series(series, chapter).write_buffer()
-        if not command.no_save:
-            chapter.ebook = epub.getbuffer()
+        if command.save and chapter.ebook is None:
+            ebook = Epub.from_series(series, chapter).write_buffer()
+            chapter.ebook = ebook.getbuffer()
             database.commit()
 
         if chapter.sent_at is not None:
             continue
 
         status.update(f"Sending chapter: '{chapter.title}'")
-        for subscriber in series.email_subscribers:
+        for series_subscribers in series.series_subscribers:
+            if series_subscribers.send_event:
+                continue
+
+            if chapter.ebook is None:
+                ebook = Epub.from_series(series, chapter).write_buffer().read()
+            else:
+                ebook = chapter.ebook
+
+            database.add(
+                ChapterSendEvent(
+                    chapter_id=chapter.id, series_subscriber_id=series_subscribers.id
+                )
+            )
+
             title = chapter.filename()
             email_client.send(
                 subject=title,
-                to=subscriber.email,
+                to=series_subscribers.subscriber.email,
                 filename=title,
-                attachment=epub.read(),
+                attachment=ebook,
             )
 
-        chapter.sent_at = pendulum.now()
+        chapter.sent_at = pendulum.now("utc")
         database.commit()
         status.update("Chapter sent")

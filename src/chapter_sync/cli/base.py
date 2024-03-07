@@ -16,6 +16,7 @@ from typing_extensions import Doc
 from chapter_sync.cli.chapter import Chapter
 from chapter_sync.cli.db import Db
 from chapter_sync.cli.series import Series
+from chapter_sync.cli.subscriber import Subscriber
 from chapter_sync.console import Console
 from chapter_sync.email import EmailClient
 from chapter_sync.request import requests_session
@@ -40,20 +41,27 @@ def alembic_config(database_url: Annotated[str, cappa.Dep(database_url)]) -> Con
 
 def database(
     database_url: Annotated[str, cappa.Dep(database_url)],
-    alembic_config: Annotated[Config, cappa.Dep(alembic_config)],
+    alembic_config: Annotated[Config | None, cappa.Dep(alembic_config)] = None,
 ) -> Generator[Session, None, None]:
     from chapter_sync.db import bootstrap
 
     engine = create_engine(database_url)
-    with engine.connect() as conn:
-        bootstrap(conn, alembic_config)
+
+    if alembic_config:
+        with engine.connect() as conn:
+            bootstrap(conn, alembic_config)
 
     with Session(bind=engine) as session:
         yield session
 
 
 def console(command: ChapterSync):
-    return Console(command.verbose, force_terminal=command.tty)
+    console = Console(command.verbose, force_terminal=command.tty)
+    try:
+        yield console
+    except KeyboardInterrupt:
+        console.show_cursor()
+        raise cappa.Exit("Exiting...")
 
 
 def email_client(console: Annotated[Console, cappa.Dep(console)]) -> EmailClient:
@@ -68,7 +76,9 @@ class ChapterSync:
     to keep the series up-to-date, and emit those updates to supported subscribers.
     """
 
-    commands: cappa.Subcommands[Series | Sync | Watch | Chapter | Db]
+    commands: cappa.Subcommands[
+        Subscriber | Series | Sync | Watch | Chapter | Db | Web | None
+    ]
 
     database_name: Annotated[
         str,
@@ -93,21 +103,21 @@ class Sync:
         cappa.Arg(long=True),
         Doc("Only sync the supplied set of series ids."),
     ] = None
-    no_update: Annotated[
+    update: Annotated[
         bool,
-        cappa.Arg(long=True),
+        cappa.Arg(long="--update/--no-update"),
         Doc("Do not update the set of known content."),
-    ] = False
-    no_save: Annotated[
+    ] = True
+    save: Annotated[
         bool,
-        cappa.Arg(long=True),
+        cappa.Arg(long="--save/--no-save"),
         Doc("Do not save the resultant epub to the chapter."),
-    ] = False
-    no_send: Annotated[
+    ] = True
+    send: Annotated[
         bool,
-        cappa.Arg(long=True),
+        cappa.Arg(long="--send/--no-send"),
         Doc("Do not send updates to subscribers."),
-    ] = False
+    ] = True
 
 
 @cappa.command(invoke="chapter_sync.sync.watch")
@@ -129,5 +139,21 @@ class Watch(Sync):
     ] = 0
 
 
+@dataclass
+class Web:
+    host: Annotated[str, cappa.Arg(short=True, long=True)] = "127.0.0.1"
+    port: Annotated[int, cappa.Arg(short=True, long=True)] = 8000
+
+    def __call__(self):
+        import uvicorn
+
+        from chapter_sync.web.main import create_app
+
+        uvicorn.run(create_app(), host=self.host, port=self.port)
+
+
 def run():
-    cappa.invoke(ChapterSync, deps=[load_dotenv])
+    try:
+        cappa.invoke(ChapterSync, deps=[load_dotenv])
+    except KeyboardInterrupt:
+        print("Exiting...")

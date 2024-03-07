@@ -23,12 +23,25 @@ or alternatively with `docker-compose`
 ```yaml
 version: "3.8"
 
+name: chapter-sync
 services:
-  chapter-sync:
-    image: chapter-sync
+  watch:
+    image: dancardin/chapter-sync:latest
     restart: always
+    command: watch
     volumes:
-      - chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite
+      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
+
+  # optionally
+
+  web:
+    image: dancardin/chapter-sync:latest
+    restart: always
+    command: web --host 0.0.0.0
+    ports:
+      - 8000:8000
+    volumes:
+      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
 ```
 
 In either case you can `docker exec` into the container to interact with the

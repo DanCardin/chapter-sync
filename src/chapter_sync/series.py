@@ -15,7 +15,7 @@ from chapter_sync.cli.series import Add, Export, List, Remove, Set, Subscribe
 from chapter_sync.console import Console
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import detect, get_infer_handler, get_settings_handler
-from chapter_sync.schema import EmailSubscriber, Series
+from chapter_sync.schema import Series, SeriesSubscriber
 
 
 def add(
@@ -131,27 +131,27 @@ def subscribe(
     console: Annotated[Console, cappa.Dep(console)],
 ):
     conflicts = database.scalars(
-        select(EmailSubscriber).where(
+        select(SeriesSubscriber).where(
             or_(
-                EmailSubscriber.email == command.email,
-                EmailSubscriber.series_id == command.series,
+                SeriesSubscriber.subscriber_id == command.subscriber,
+                SeriesSubscriber.series_id == command.series,
             )
         )
     ).all()
     if conflicts:
         raise cappa.Exit(
-            f"Subscriber already exists with email='{command.email}' and series='{command.series}'",
+            f"Subscriber already exists with email='{command.subscriber}' and series='{command.series}'",
             code=1,
         )
 
-    sub = EmailSubscriber(
-        email=command.email,
+    sub = SeriesSubscriber(
+        subscriber_id=command.subscriber,
         series_id=command.series,
     )
     database.add(sub)
     database.commit()
 
-    console.info(f'Subscribed to "{command.series}" with "{command.email}"')
+    console.info(f'Subscribed to "{command.series}" with "{command.subscriber}"')
 
 
 def export(
@@ -190,7 +190,7 @@ def set_series(
     )
     series = database.scalars(query).one_or_none()
     if series is None:
-        raise cappa.Exit("No series with id={command.series}", code=1)
+        raise cappa.Exit(f"No series with id={command.series}", code=1)
 
     if command.settings:
         settings_handler = get_settings_handler(series.type)

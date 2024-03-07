@@ -21,7 +21,7 @@ format:
 	ruff src tests --fix
 	ruff format src tests
 
-.PHONY: docker-build docker-watch docker-publish
+.PHONY: docker-tag docker-build docker-watch docker-publish
 docker-build:
 	docker build \
 	--target final \
@@ -31,8 +31,25 @@ docker-build:
 docker-watch:
 	docker run -it --rm -v $(PWD):/app chapter-sync
 
-docker-publish: docker-build
+docker-tag:
 	docker tag chapter-sync dancardin/chapter-sync:latest
 	docker tag chapter-sync dancardin/chapter-sync:$(VERSION)
+
+docker-publish: docker-build docker-tag
 	docker push dancardin/chapter-sync:latest
 	docker push dancardin/chapter-sync:$(VERSION)
+
+
+.PHONY: run run-web init-css watch-css
+
+run:
+	chapter-sync watch
+
+run-web:
+	uvicorn chapter_sync.web.__main__:create_app --reload
+
+init-css:
+	npm install tailwindcss flowbite
+
+watch-css:
+	npx tailwindcss -i src/chapter_sync/web/static/styles.css -o src/chapter_sync/web/static/app.css --watch

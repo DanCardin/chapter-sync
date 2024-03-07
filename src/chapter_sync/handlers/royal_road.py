@@ -58,9 +58,8 @@ def chapter_handler(
 
     existing_chapters = {c.url: c for c in series.chapters}
 
-    for number, chapter in enumerate(
-        soup.select("#chapters tbody tr[data-url]"), start=1
-    ):
+    chapter_elements = soup.select("#chapters tbody tr[data-url]")
+    for number, chapter in enumerate(chapter_elements, start=1):
         chapter_url = join_path(series.url, str(chapter.get("data-url")))
 
         if chapter_url in existing_chapters:

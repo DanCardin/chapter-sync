@@ -39,6 +39,13 @@ rich = "*"
 sqlalchemy = ">=2.0"
 xmltodict = "*"
 
+# web
+fastapi = "*"
+uvicorn = "*"
+pydantic = ">=2"
+jinja2 = "*"
+dataclass-settings = "^0.2.3"
+
 [tool.poetry.group.dev.dependencies]
 coverage = "^6.0"
 mypy = "1.8.0"

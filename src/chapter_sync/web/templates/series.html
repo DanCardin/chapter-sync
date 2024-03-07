@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+<!-- -->
+{% block body %}
+<!-- -->
+{% if not series %}
+<p
+  class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400"
+>
+  No such series.
+</p>
+{% else %}
+<h1
+  class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+>
+  {{series.title}}
+</h1>
+<div class="relative overflow-x-auto">
+  <table
+    class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+  >
+    <thead
+      class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+    >
+      <tr>
+        <th scope="col" class="px-6 py-3">#</th>
+        <th scope="col" class="px-6 py-3">Title</th>
+        <th scope="col" class="px-6 py-3">Length</th>
+        <th scope="col" class="px-6 py-3">Published At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in chapter_list %}
+      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+        <td class="px-6 py-4">{{ c.number }}</td>
+        <th
+          scope="row"
+          class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+        >
+          <a href="/series/{{ c.series_id }}/chapter/{{ c.id }}"
+            >{{ c.title }}</a
+          >
+        </th>
+        <td class="px-6 py-4">{{ "%.0f"|format(c.size_kb) }} Kb</td>
+        <td class="px-6 py-4">
+          <span
+            data-tooltip-target="tooltip-{{ c.series_id }}-{{ c.id }}-published"
+          >
+            {{ c.published_at | relative_datetime }}
+          </span>
+          <div
+            id="tooltip-{{ c.series_id }}-{{ c.id }}-published"
+            role="tooltip"
+            class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+          >
+            {{ c.published_at | format_datetime }}
+            <div class="tooltip-arrow" data-popper-arrow></div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+<!-- -->
+{% endblock %}

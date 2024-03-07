@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+<!-- -->
+{% block body %}
+<h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Series</h1>
+{% if not series_list %}
+  <p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">There are no series available.</p>
+{% else %}
+<div class="relative overflow-x-auto">
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Link
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Title
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Author
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Chapters
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Last Updated
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+      {% for s in series_list %}
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                  <a href="{{ s.url }}">Link</a>
+                </td>
+                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                  <a href="/series/{{ s.id }}">{{ s.title }}</a>
+                </td>
+                <td class="px-6 py-4">
+                  {{ s.author }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ s.chapters | length }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ s.last_built_at and s.last_built_at | relative_datetime }}
+                </td>
+            </tr>
+      {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+<!-- -->
+{% endblock %}

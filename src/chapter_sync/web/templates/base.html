@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" href="/static/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+
+    <title>Chapter Sync</title>
+
+    <link href="{{url_for('static',path='/app.css')}}" rel="stylesheet" />
+    <script>
+      if (
+        localStorage.getItem("color-theme") === "dark" ||
+        (!("color-theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+  </head>
+  <body class="dark:bg-gray-900 antialiased">
+    {% include 'header.html' %}
+    <!-- -->
+    <main
+      id="content-wrapper"
+      class="flex-auto w-full min-w-0 lg:static lg:max-h-full lg:overflow-visible"
+    >
+      <div class="container mx-auto px-4 py-6">
+        {% block body %}{% endblock %}
+      </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+  </body>
+</html>
