@@ -59,8 +59,11 @@ def sync(
             update_series(database, s, status)
             status.update(f"Updated series: '{s.name}'")
 
+        if command.save:
+            save_series_ebooks(database, s, status)
+
         if command.send:
-            send_series(command, database, s, email_client, status)
+            send_series(database, s, email_client, status)
 
     status.update("Done")
 
@@ -79,20 +82,24 @@ def update_series(database: Session, series: Series, status: Status):
         database.commit()
 
 
+def save_series_ebooks(database: Session, series: Series, status: Status):
+    for chapter in series.chapters:
+        status.update(f"Saving chapter: '{chapter.title}'")
+        if chapter.ebook:
+            continue
+
+        ebook = Epub.from_series(series, chapter).write_buffer()
+        chapter.ebook = ebook.getbuffer()
+        database.commit()
+
+
 def send_series(
-    command: Sync,
     database: Session,
     series: Series,
     email_client: EmailClient,
     status: Status,
 ):
     for chapter in series.chapters:
-        status.update(f"Saving chapter: '{chapter.title}'")
-        if command.save and chapter.ebook is None:
-            ebook = Epub.from_series(series, chapter).write_buffer()
-            chapter.ebook = ebook.getbuffer()
-            database.commit()
-
         if chapter.sent_at is not None:
             continue
 

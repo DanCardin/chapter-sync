@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy_model_factory.pytest import create_registry_fixture
 from time_machine import TimeMachineFixture
 
+from chapter_sync.console import Console
+from chapter_sync.email import EmailClient
 from chapter_sync.schema import Base
+from tests.email import StubEmailClient
 from tests.factories import ModelFactory
 
 
@@ -40,6 +43,16 @@ def mf_session(db: Session):
 @pytest.fixture
 def mf_config(db: Session):
     return {"cleanup": False}
+
+
+@pytest.fixture
+def console():
+    return Console()
+
+
+@pytest.fixture
+def email_client(console: Console) -> EmailClient:
+    return StubEmailClient(console)
 
 
 mf_registry = create_registry_fixture(ModelFactory)

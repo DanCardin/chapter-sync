@@ -163,10 +163,10 @@ class SeriesSubscriber(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     series_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("series.id"), nullable=False, primary_key=True
+        Integer, ForeignKey("series.id"), nullable=False
     )
     subscriber_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("subscriber.id"), nullable=False, primary_key=True
+        Integer, ForeignKey("subscriber.id"), nullable=False
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -196,10 +196,10 @@ class ChapterSendEvent(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     chapter_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("chapter.id"), primary_key=True
+        Integer, ForeignKey("chapter.id"), nullable=False
     )
     series_subscriber_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("series_subscriber.id"), primary_key=True
+        Integer, ForeignKey("series_subscriber.id"), nullable=False
     )
 
     created_at: Mapped[datetime] = mapped_column(

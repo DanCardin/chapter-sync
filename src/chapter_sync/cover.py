@@ -55,48 +55,6 @@ class Cover:
 logger = logging.getLogger(__name__)
 
 
-def make_cover_image(
-    title,
-    author,
-    width=600,
-    height=800,
-    fontname="Helvetica",
-    fontsize=40,
-    bgcolor=(120, 20, 20),
-    textcolor=(255, 255, 255),
-    wrap_at=30,
-):
-    img = Image.new("RGBA", (width, height), bgcolor)
-    draw = ImageDraw.Draw(img)
-
-    title = textwrap.fill(title, wrap_at)
-    author = textwrap.fill(author or "", wrap_at)
-
-    font = _safe_font(fontname, size=fontsize)
-    title_size = draw.textsize(title, font=font)
-    draw_text_outlined(
-        draw, ((width - title_size[0]) / 2, 100), title, textcolor, font=font
-    )
-    # draw.text(((width - title_size[0]) / 2, 100), title, textcolor, font=font)
-
-    font = _safe_font(fontname, size=fontsize - 2)
-    author_size = draw.textsize(author, font=font)
-    draw_text_outlined(
-        draw,
-        ((width - author_size[0]) / 2, 100 + title_size[1] + 70),
-        author,
-        textcolor,
-        font=font,
-    )
-
-    output = BytesIO()
-    img.save(output, "PNG")
-    output.name = "cover.png"
-    # writing left the cursor at the end of the file, so reset it
-    output.seek(0)
-    return output.read()
-
-
 def make_cover_from_url(url, title, author):
     try:
         logger.info("Downloading cover from " + url)
@@ -126,6 +84,38 @@ def _convert_to_png(image_bytestream):
     return png_image
 
 
+def make_cover_image(
+    title,
+    author,
+    width=600,
+    height=800,
+    fontname="Helvetica",
+    fontsize=40,
+    bgcolor=(120, 20, 20),
+    textcolor=(255, 255, 255),
+    wrap_at=30,
+):
+    img = Image.new("RGBA", (width, height), bgcolor)
+    draw = ImageDraw.Draw(img)
+
+    title = textwrap.fill(title, wrap_at)
+    author = textwrap.fill(author or "", wrap_at)
+
+    font = _safe_font(fontname, size=fontsize)
+
+    draw.text((width / 2, 100), title, textcolor, font=font)
+
+    font = _safe_font(fontname, size=fontsize - 2)
+    draw.text((width / 2, 200), author, textcolor, font=font)
+
+    output = BytesIO()
+    img.save(output, "PNG")
+    output.name = "cover.png"
+    # writing left the cursor at the end of the file, so reset it
+    output.seek(0)
+    return output.read()
+
+
 def _safe_font(preferred, *args, **kwargs):
     for font in (preferred, "Helvetica", "FreeSans", "Arial"):
         try:
@@ -136,16 +126,3 @@ def _safe_font(preferred, *args, **kwargs):
     # This is pretty terrible, but it'll work regardless of what fonts the
     # system has. Worst issue: can't set the size.
     return ImageFont.load_default()
-
-
-def draw_text_outlined(draw, xy, text, fill=None, font=None, anchor=None):
-    x, y = xy
-
-    # Outline
-    draw.text((x - 1, y), text=text, fill=(0, 0, 0), font=font, anchor=anchor)
-    draw.text((x + 1, y), text=text, fill=(0, 0, 0), font=font, anchor=anchor)
-    draw.text((x, y - 1), text=text, fill=(0, 0, 0), font=font, anchor=anchor)
-    draw.text((x, y + 1), text=text, fill=(0, 0, 0), font=font, anchor=anchor)
-
-    # Fill
-    draw.text(xy, text=text, fill=fill, font=font, anchor=anchor)

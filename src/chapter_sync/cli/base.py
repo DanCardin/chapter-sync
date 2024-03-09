@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.resources
+import sys
 from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Annotated
@@ -156,4 +157,4 @@ def run():
     try:
         cappa.invoke(ChapterSync, deps=[load_dotenv])
     except KeyboardInterrupt:
-        print("Exiting...")
+        sys.stderr.write("Exiting...\n")
