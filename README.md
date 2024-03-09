@@ -57,6 +57,13 @@ Some Book: Chapter 4.epub
 Some Book.epub
 ```
 
+## Web
+
+The tool also ships with a web service which can be used to view and
+(eventually) manage subscriptions
+
+![Web Example](docs/web.png)
+
 ## Inspiration
 
 **this** tool started off as an attempt at a refactor/PR to
