@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from chapter_sync.cli.base import console, database
 from chapter_sync.cli.subscriber import Add, Remove, Set
 from chapter_sync.console import Console
-from chapter_sync.schema import Subscriber
+from chapter_sync.schema import EmailSubscriber, EmailSubscription
 
 
 def add(
@@ -17,20 +17,21 @@ def add(
     database: Annotated[Session, cappa.Dep(database)],
     console: Annotated[Console, cappa.Dep(console)],
 ):
-    conflicts = database.scalars(
-        select(Subscriber).where(Subscriber.name == command.name)
-    ).all()
-    if conflicts:
-        raise cappa.Exit(
-            f"Subscriber already exists with name='{command.name}'",
-            code=1,
-        )
+    if command.email:
+        conflicts = database.scalars(
+            select(EmailSubscriber).where(EmailSubscriber.email == command.email)
+        ).all()
+        if conflicts:
+            raise cappa.Exit(
+                f"Subscriber already exists with email='{command.email}'",
+                code=1,
+            )
 
-    subscriber = Subscriber(name=command.name, email=command.email)
-    database.add(subscriber)
-    database.commit()
+        subscriber = EmailSubscriber(email=command.email)
+        database.add(subscriber)
+        database.commit()
 
-    console.info(f'Added subscriber "{command.name}" (email: "{command.email}")')
+        console.info(f'Added subscriber "{command.email}" (email: "{command.email}")')
 
 
 def remove(
@@ -38,19 +39,19 @@ def remove(
     database: Annotated[Session, cappa.Dep(database)],
     console: Annotated[Console, cappa.Dep(console)],
 ):
-    if not any([command.id, command.name, command.all]):
+    if not any([command.id, command.email, command.all]):
         raise cappa.Exit("Please provide an id or a name", code=1)
 
-    query = delete(Subscriber)
+    query = delete(EmailSubscriber)
     if command.id:
-        query = query.where(Subscriber.id == command.id)
-    if command.name:
-        query = query.where(Subscriber.name == command.name)
+        query = query.where(EmailSubscriber.id == command.id)
+    if command.email:
+        query = query.where(EmailSubscriber.email == command.email)
 
     result = database.execute(query)
     if result.rowcount == 0:
         raise cappa.Exit(
-            f"id={command.id}, name={command.name} matched no records", code=1
+            f"id={command.id}, name={command.email} matched no records", code=1
         )
 
     database.commit()
@@ -62,13 +63,13 @@ def list_subscribers(
     database: Annotated[Session, cappa.Dep(database)],
     console: Annotated[Console, cappa.Dep(console)],
 ):
-    result = database.scalars(select(Subscriber)).all()
+    result = database.scalars(select(EmailSubscriber)).all()
     if not result:
         console.info("No subscribers found")
         return
 
-    columns = ["ID", "Name", "Email"]
-    table_result = [(r.id, r.name, r.email) for r in result]
+    columns = ["ID", "Email"]
+    table_result = [(r.id, r.email) for r in result]
 
     console.table(
         "Subscriber",
@@ -81,11 +82,8 @@ def set_subscriber(
     command: Set,
     database: Annotated[Session, cappa.Dep(database)],
 ):
-    if not any([command.email]):
-        raise cappa.Exit("If no fields selected to set", code=1)
-
-    query = select(Subscriber).where(
-        Subscriber.id == command.subscriber,
+    query = select(EmailSubscriber).where(
+        EmailSubscriber.id == command.subscriber,
     )
     subscriber = database.scalars(query).one_or_none()
     if subscriber is None:
@@ -93,5 +91,16 @@ def set_subscriber(
 
     if command.email:
         subscriber.email = command.email
+
+    if command.series is not None:
+        declared_series = set(command.series)
+        existing_series = set(subscriber.subscribed_series_by_id)
+        extra_series = existing_series - declared_series
+        new_series = declared_series - existing_series
+        for series in extra_series:
+            subscriber.subscribed_series_by_id.pop(series)
+
+        for series in new_series:
+            subscriber.email_subscriptions.append(EmailSubscription(series_id=series))
 
     database.commit()

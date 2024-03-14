@@ -3,13 +3,31 @@
 >
   <div class="flex items-center justify-between mx-0">
     <div class="flex items-center">
-      <a href="/" class="flex items-center mx-4">
+      <button
+        type="button"
+        id="dropdownDefaultButton"
+        data-dropdown-toggle="dropdown"
+        data-dropdown-trigger="hover"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+      >
         <img
           src="/static/icon.svg"
-          class="h-6 mr-3 sm:h-9 dark:text-white"
+          class="h-6 sm:h-9 dark:text-white"
           alt="Logo"
           />
+      </button>
+      <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+        <ul class="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownDefaultButton">
+          <li>
+            <a href="/" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Series</a>
+          </li>
+          <li>
+            <a href="/subscriber" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subscriber</a>
+          </li>
+        </ul>
+      </div>
 
+      <a href="/" class="flex items-center mx-4">
         <span
           class="self-center text-xl font-semibold whitespace-nowrap dark:text-white"
           >Chapter Sync</span

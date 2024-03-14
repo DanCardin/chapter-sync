@@ -14,7 +14,7 @@ from chapter_sync.email import EmailClient
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import get_chapter_handler, get_settings_handler
 from chapter_sync.request import requests_session
-from chapter_sync.schema import ChapterSendEvent, Series
+from chapter_sync.schema import Chapter, Series
 
 
 def watch(
@@ -63,7 +63,7 @@ def sync(
             save_series_ebooks(database, s, status)
 
         if command.send:
-            send_series(database, s, email_client, status)
+            send_series(command, database, s, email_client, status)
 
     status.update("Done")
 
@@ -94,39 +94,52 @@ def save_series_ebooks(database: Session, series: Series, status: Status):
 
 
 def send_series(
+    command: Sync,
     database: Session,
     series: Series,
     email_client: EmailClient,
     status: Status,
 ):
-    for chapter in series.chapters:
-        if chapter.sent_at is not None:
-            continue
+    subscribers = series.email_subscribers
+    unsent_chapters = [c for c in series.chapters if c.sent_at is None]
 
-        status.update(f"Sending chapter: '{chapter.title}'")
-        for series_subscribers in series.series_subscribers:
-            if series_subscribers.send_event:
-                continue
-
-            if chapter.ebook is None:
-                ebook = Epub.from_series(series, chapter).write_buffer().read()
+    if command.contiguous_chapters:
+        last_chapter = -1
+        contiguous_blocks: list[list[Chapter]] = []
+        for chapter in unsent_chapters:
+            if chapter.number == last_chapter + 1:
+                contiguous_blocks[-1].append(chapter)
             else:
-                ebook = chapter.ebook
+                contiguous_blocks.append([chapter])
+            last_chapter = chapter.number
+    else:
+        contiguous_blocks = [[c] for c in unsent_chapters]
 
-            database.add(
-                ChapterSendEvent(
-                    chapter_id=chapter.id, series_subscriber_id=series_subscribers.id
-                )
-            )
+    for block in contiguous_blocks:
+        if len(block) == 1 and block[0].ebook is not None:
+            chapter = block[0]
+
+            assert chapter.ebook is not None
+            ebook = chapter.ebook
 
             title = chapter.filename()
+        else:
+            ebook = Epub.from_series(series, *block).write_buffer().read()
+            title = f"{series.name} - Chapters {block[0].number} to {block[-1].number}"
+
+        titles = ", ".join([chapter.title for chapter in block])
+        status.update(f"Sending chapters: {titles}")
+
+        for subscriber in subscribers:
             email_client.send(
                 subject=title,
-                to=series_subscribers.subscriber.email,
+                to=subscriber.email,
                 filename=title,
                 attachment=ebook,
             )
 
-        chapter.sent_at = pendulum.now("utc")
+        for chapter in block:
+            chapter.sent_at = pendulum.now("utc")
+
         database.commit()
-        status.update("Chapter sent")
+        status.update("Chapter(s) sent")

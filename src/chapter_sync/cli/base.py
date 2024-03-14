@@ -107,17 +107,27 @@ class Sync:
     update: Annotated[
         bool,
         cappa.Arg(long="--update/--no-update"),
-        Doc("Do not update the set of known content."),
+        Doc("Whether to check the series for new content updates (Default True)"),
     ] = True
     save: Annotated[
         bool,
         cappa.Arg(long="--save/--no-save"),
-        Doc("Do not save the resultant epub to the chapter."),
+        Doc(
+            "Whether to save the resultant epub to the chapter database (Default True)"
+        ),
     ] = True
     send: Annotated[
         bool,
         cappa.Arg(long="--send/--no-send"),
-        Doc("Do not send updates to subscribers."),
+        Doc("Whether send updates to subscribers (Default True)"),
+    ] = True
+
+    contiguous_chapters: Annotated[
+        bool,
+        cappa.Arg(long="--contiguous-chapters/--no-contiguous-chapters"),
+        Doc(
+            "Whether to combine unsent contiguous chapters into a single epub when sending (Default True)"
+        ),
     ] = True
 
 

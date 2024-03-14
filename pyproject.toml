@@ -45,6 +45,7 @@ uvicorn = "*"
 pydantic = ">=2"
 jinja2 = "*"
 dataclass-settings = "^0.2.3"
+python-multipart = "^0.0.9"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^6.0"

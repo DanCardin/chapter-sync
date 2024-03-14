@@ -1,151 +1,129 @@
 {% extends "base.html" %}
-<!-- -->
 {% block body %}
-<!-- -->
-{% if not chapter %}
-<p
-  class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400"
->
-  No such chapter.
-</p>
-{% else %}
-<h1
-  class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
->
-  {{ chapter.title }}
-</h1>
-
-<div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-  <ul
-    class="flex flex-wrap -mb-px text-sm font-medium text-center"
-    id="default-tab"
-    data-tabs-toggle="#default-tab-content"
-    role="tablist"
-  >
-    <li class="me-2" role="presentation">
-      <button
-        class="inline-block p-4 border-b-2 rounded-t-lg"
-        id="profile-tab"
-        data-tabs-target="#profile"
-        type="button"
-        role="tab"
-        aria-controls="profile"
-        aria-selected="false"
-      >
-        Info
-      </button>
-    </li>
-    <li class="me-2" role="presentation">
-      <button
-        class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
-        id="dashboard-tab"
-        data-tabs-target="#dashboard"
-        type="button"
-        role="tab"
-        aria-controls="dashboard"
-        aria-selected="false"
-      >
-        Content
-      </button>
-    </li>
-  </ul>
-</div>
-<div id="default-tab-content">
-  <div
-    class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-    id="profile"
-    role="tabpanel"
-    aria-labelledby="profile-tab"
-  >
-    <div class="text-md text-gray-500 dark:text-gray-400 flex">
-      <div class="flex-1">
-        <ui class="mb-2">
-        <li class="font-medium"><a href="{{ chapter.url }}">Link</a></li>
-        <li class="font-medium">Number:</span> {{ chapter.number }}</li>
-        <li class="font-medium">Size:</span> {{ "%0.f" | format(chapter.size_kb) }} Kb</li>
-        <li class="font-medium">Published:</span> {{ chapter.published_at | relative_datetime }}</li>
-        <li class="font-medium">Created:</span> {{ chapter.created_at | relative_datetime }}</li>
-        <li class="font-medium">Sent:</span> {{ chapter.sent_at | relative_datetime }}</li>
-        </ui>
+  {% if not chapter %}
+    <p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">No such chapter.</p>
+  {% else %}
+    <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+      {{ chapter.title }}
+    </h1>
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+      <ul class="flex flex-wrap -mb-px text-sm font-medium text-center"
+          id="default-tab"
+          data-tabs-toggle="#default-tab-content"
+          role="tablist">
+        <li class="me-2" role="presentation">
+          <button class="inline-block p-4 border-b-2 rounded-t-lg"
+                  id="profile-tab"
+                  data-tabs-target="#profile"
+                  type="button"
+                  role="tab"
+                  aria-controls="profile"
+                  aria-selected="false">Info</button>
+        </li>
+        <li class="me-2" role="presentation">
+          <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+                  id="dashboard-tab"
+                  data-tabs-target="#dashboard"
+                  type="button"
+                  role="tab"
+                  aria-controls="dashboard"
+                  aria-selected="false">Content</button>
+        </li>
+      </ul>
+    </div>
+    <div id="default-tab-content">
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+           id="profile"
+           role="tabpanel"
+           aria-labelledby="profile-tab">
+        <div class="text-md text-gray-500 dark:text-gray-400 flex">
+          <div class="flex-1">
+            <ui class="mb-2">
+            <li class="font-medium">
+              <a href="{{ chapter.url }}">Link</a>
+            </li>
+            <li class="font-medium">
+              Number:</span> {{ chapter.number }}
+            </li>
+            <li class="font-medium">
+              Size:</span> {{ "%0.f" | format(chapter.size_kb) }} Kb
+            </li>
+            <li class="font-medium">
+              Published:</span> {{ chapter.published_at | relative_datetime }}
+            </li>
+            <li class="font-medium">
+              Created:</span> {{ chapter.created_at | relative_datetime }}
+            </li>
+            <li class="font-medium">
+              Sent:</span> {{ chapter.sent_at | relative_datetime }}
+            </li>
+            </ui>
+          </div>
+          <div class="flex-none justify-end">
+            <div class="flex flex-1">
+              {% if chapter.ebook %}
+                <form method="post"
+                      action="/series/{{ chapter.series_id }}/chapter/{{ chapter.id }}/ebook">
+                  <button type="submit"
+                          class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800 mx-2 text-center inline-flex items-center">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white"
+                         aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg"
+                         width="24"
+                         height="24"
+                         fill="none"
+                         viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3" />
+                    </svg>
+                    Force Send
+                  </button>
+                </form>
+                <form method="get"
+                      action="/series/{{ chapter.series_id }}/chapter/{{ chapter.id }}/ebook">
+                  <button type="submit"
+                          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 text-center inline-flex items-center">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white"
+                         aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="currentColor"
+                         viewBox="0 0 24 24">
+                      <path fill-rule="evenodd" d="M13 11.1V4a1 1 0 1 0-2 0v7.1L8.8 8.4a1 1 0 1 0-1.6 1.2l4 5a1 1 0 0 0 1.6 0l4-5a1 1 0 1 0-1.6-1.2L13 11Z" clip-rule="evenodd" />
+                      <path fill-rule="evenodd" d="M9.7 15.9 7.4 13H5a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2.4l-2.3 2.9a3 3 0 0 1-4.6 0Zm7.3.1a1 1 0 1 0 0 2 1 1 0 1 0 0-2Z" clip-rule="evenodd" />
+                    </svg>
+                    Download
+                  </button>
+                </form>
+              {% endif %}
+              <form method="post"
+                    action="/series/{{ chapter.series_id }}/chapter/{{ chapter.id }}/export">
+                <button type="submit"
+                        class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800 text-center inline-flex items-center">
+                  <svg class="w-6 h-6 text-gray-800 dark:text-white"
+                       aria-hidden="true"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="currentColor"
+                       viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M9 7V2.2a2 2 0 0 0-.5.4l-4 3.9a2 2 0 0 0-.3.5H9Zm2 0V2h7a2 2 0 0 1 2 2v9.3l-2-2a1 1 0 0 0-1.4 1.4l.3.3h-6.6a1 1 0 1 0 0 2h6.6l-.3.3a1 1 0 0 0 1.4 1.4l2-2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Z" clip-rule="evenodd" />
+                  </svg>
+                  Create Epub
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex-none justify-end">
-        <div class="flex flex-1">
-        {% if chapter.ebook %}
-        <form
-          method="GET"
-          action="/series/{{ chapter.series_id }}/chapter/{{ chapter.id }}/ebook"
-        >
-          <button
-            type="submit"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 mx-2 text-center inline-flex items-center"
-          >
-            <svg
-              class="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M13 11.1V4a1 1 0 1 0-2 0v7.1L8.8 8.4a1 1 0 1 0-1.6 1.2l4 5a1 1 0 0 0 1.6 0l4-5a1 1 0 1 0-1.6-1.2L13 11Z"
-                clip-rule="evenodd"
-              />
-              <path
-                fill-rule="evenodd"
-                d="M9.7 15.9 7.4 13H5a2 2 0 0 0-2 2v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2.4l-2.3 2.9a3 3 0 0 1-4.6 0Zm7.3.1a1 1 0 1 0 0 2 1 1 0 1 0 0-2Z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Download
-          </button>
-        </form>
-        {% endif %}
-        <form
-          method="POST"
-          action="/series/{{ chapter.series_id }}/chapter/{{ chapter.id }}/export"
-        >
-          <button
-            type="submit"
-            class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800 text-center inline-flex items-center"
-          >
-            <svg
-              class="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M9 7V2.2a2 2 0 0 0-.5.4l-4 3.9a2 2 0 0 0-.3.5H9Zm2 0V2h7a2 2 0 0 1 2 2v9.3l-2-2a1 1 0 0 0-1.4 1.4l.3.3h-6.6a1 1 0 1 0 0 2h6.6l-.3.3a1 1 0 0 0 1.4 1.4l2-2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Create Epub
-          </button>
-        </form>
-      </div>
-      </div>
-      </div></div>
-      <div
-        class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-        id="dashboard"
-        role="tabpanel"
-        aria-labelledby="dashboard-tab"
-      >
-        <div
-          class="text-md text-gray-500 dark:text-gray-400 format lg:format-lg text-justify"
-        >
-          {% if chapter.content %} {{ chapter.content | safe }} {% else %}
-          <p>No content found.</p>
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+           id="dashboard"
+           role="tabpanel"
+           aria-labelledby="dashboard-tab">
+        <div class="text-md text-gray-500 dark:text-gray-400 format lg:format-lg text-justify">
+          {% if chapter.content %}
+            {{ chapter.content | safe }}
+          {% else %}
+            <p>No content found.</p>
           {% endif %}
         </div>
       </div>
     </div>
-
-    {% endif %}
-    <!-- -->
-    {% endblock %}
-  </div>
-</div>
+  {% endif %}
+{% endblock %}

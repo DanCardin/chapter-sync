@@ -7,11 +7,12 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from starlette.status import HTTP_302_FOUND
 
-from chapter_sync.chapter import export as export_chapter
-from chapter_sync.cli.chapter import Export
+from chapter_sync import chapter as chapter_actions
+from chapter_sync.cli.chapter import Export, Send
 from chapter_sync.console import Console
+from chapter_sync.email import EmailClient
 from chapter_sync.schema import Chapter
-from chapter_sync.web.dependencies import console, database, templates
+from chapter_sync.web.dependencies import console, database, email_client, templates
 
 
 def find_chapter(db: Session, series_id: int, chapter_id: int) -> Chapter | None:
@@ -53,7 +54,7 @@ def export(
     assert chapter
 
     export = Export(series_id, chapter.number, force=True)
-    export_chapter(export, db, console)
+    chapter_actions.export(export, db, console)
 
     return RedirectResponse(
         url=request.url_for(
@@ -78,4 +79,29 @@ def download(
         io.BytesIO(chapter.ebook),
         media_type="application/epub+zip",
         headers={"Content-Disposition": f'inline; filename="{chapter.filename()}"'},
+    )
+
+
+def send(
+    request: Request,
+    db: Annotated[Session, Depends(database)],
+    email_client: Annotated[EmailClient, Depends(email_client)],
+    series_id: int,
+    chapter_id: int,
+):
+    chapter = find_chapter(db, series_id, chapter_id)
+
+    assert chapter
+    assert chapter.ebook
+
+    send = Send(series_id, chapter.number)
+    chapter_actions.send(send, db, email_client)
+
+    return RedirectResponse(
+        url=request.url_for(
+            "get_chapter",
+            series_id=series_id,
+            chapter_id=chapter_id,
+        ),
+        status_code=HTTP_302_FOUND,
     )

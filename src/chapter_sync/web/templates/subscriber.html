@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+<!-- -->
+{% block body %}
+<!-- -->
+{% if not subscriber %}
+<p
+  class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400"
+>
+  No such subscriber.
+</p>
+{% else %}
+<h2
+  class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+>
+  {{ subscriber.email }}
+</h2>
+
+<div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+  <form
+    method="POST"
+    action="/subscriber/{{ subscriber.id }}"
+  >
+    <div class="text-md text-gray-500 dark:text-gray-400 flex">
+      <div class="flex flex-1">
+        <div class="grid gap-6 mb-6 md:grid-cols-2">
+          <div class="mb-2">
+            <label for="email" class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">Email</label>
+            <input type="text" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="{{ subscriber.email }}" />
+          </div>
+          <div class="mb-2">
+            <label for="created_at" class="block text-sm font-medium text-gray-900 dark:text-white">Created</label>
+            <span id="created_at">{{ subscriber.created_at | relative_datetime }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex-none justify-end">
+        <div class="flex flex-1">
+          <button
+            type="submit"
+            class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800 text-center inline-flex items-center"
+          >
+            <svg
+              class="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 7V2.2a2 2 0 0 0-.5.4l-4 3.9a2 2 0 0 0-.3.5H9Zm2 0V2h7a2 2 0 0 1 2 2v9.3l-2-2a1 1 0 0 0-1.4 1.4l.3.3h-6.6a1 1 0 1 0 0 2h6.6l-.3.3a1 1 0 0 0 1.4 1.4l2-2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-lg bg-gray-50 dark:bg-gray-800">
+      <h3
+        class="mb-4 text-2xl md:text-3xl lg:text-4xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white"
+      >
+        Subscriptions
+      </h3>
+      <div class="flex flex-col mb-6">
+        {% for series in subscribed_series %}
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" name="series" value="{{ series.id }}" class="sr-only peer" checked>
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ series.title }}</span>
+        </label>
+        {% endfor %}
+        {% for series in unsubscribed_series %}
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" name="series" value="{{ series.id }}" class="sr-only peer">
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ series.title }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </form>
+</div>
+{% endif %}
+<!-- -->
+{% endblock %}

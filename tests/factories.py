@@ -3,7 +3,7 @@ from typing import Literal
 
 from sqlalchemy_model_factory import declarative
 
-from chapter_sync.schema import Chapter, Series, SeriesSubscriber, Subscriber
+from chapter_sync.schema import Chapter, EmailSubscriber, EmailSubscription, Series
 
 
 @declarative
@@ -53,14 +53,13 @@ class ModelFactory:
             created_at=created_at,
         )
 
-    def subscriber(
+    def email_subscriber(
         self,
         *,
         id: int | None = None,
-        name: str = "name",
         email: str = "foo@foo.com",
     ):
-        return Subscriber(id=id, name=name, email=email)
+        return EmailSubscriber(id=id, email=email)
 
-    def series_subscriber(self, series: Series, subscriber: Subscriber):
-        return SeriesSubscriber(series_id=series.id, subscriber_id=subscriber.id)
+    def email_subscription(self, series: Series, subscriber: EmailSubscriber):
+        return EmailSubscription(series_id=series.id, subscriber_id=subscriber.id)

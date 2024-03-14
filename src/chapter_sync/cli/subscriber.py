@@ -19,8 +19,6 @@ class Subscriber:
 class Add:
     """Add a new subscriber to the database."""
 
-    name: Annotated[str, Doc("The name of the subscriber.")]
-
     email: Annotated[
         str | None,
         cappa.Arg(long=True),
@@ -38,8 +36,8 @@ class Remove:
     id: Annotated[
         int | None, cappa.Arg(long=True), Doc("The 'id' of the subscriber to remove")
     ] = None
-    name: Annotated[
-        str | None, cappa.Arg(long=True), Doc("The 'name' of the subscriber to remove")
+    email: Annotated[
+        str | None, cappa.Arg(long=True), Doc("The 'email' of the subscriber to remove")
     ] = None
     all: Annotated[
         bool,
@@ -67,4 +65,10 @@ class Set:
         str | None,
         cappa.Arg(long=True),
         Doc("Set the email of the subscriber to a new value."),
+    ] = None
+
+    series: Annotated[
+        list[int] | None,
+        cappa.Arg(long=True),
+        Doc("The set of series to be subscribed to."),
     ] = None

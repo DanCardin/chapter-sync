@@ -120,8 +120,8 @@ def test_subscriber_send(
         content="<p>This is some content!</p>",
         sent_at=None,
     )
-    subscriber = mf.subscriber()
-    mf.series_subscriber(series, subscriber)
+    subscriber = mf.email_subscriber()
+    mf.email_subscription(series, subscriber)
 
     responses.get(f"{url}/toc", body="""<ul></ul>""")
 

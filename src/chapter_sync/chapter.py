@@ -78,6 +78,8 @@ def send(
     email_client: Annotated[EmailClient, cappa.Dep(email_client)],
 ):
     chapter = get_chapter(database, command.series, command.number)
+    ebook = chapter.ebook
+    assert ebook
 
     for subscriber in chapter.series.email_subscribers:
         title = chapter.filename()
@@ -85,7 +87,7 @@ def send(
             subject=title,
             to=subscriber.email,
             filename=title,
-            attachment=chapter.ebook,
+            attachment=ebook,
         )
 
 

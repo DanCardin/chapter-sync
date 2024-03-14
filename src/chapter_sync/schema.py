@@ -26,6 +26,7 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+from sqlalchemy.orm.collections import attribute_keyed_dict
 
 from chapter_sync.handlers.base import HandlerTypes
 
@@ -80,8 +81,10 @@ class Series(Base):
         back_populates="series",
         order_by="Chapter.number",
     )
-    series_subscribers: Mapped[list[SeriesSubscriber]] = relationship(
-        "SeriesSubscriber", back_populates="series"
+    email_subscribers: Mapped[list[EmailSubscriber]] = relationship(
+        "EmailSubscriber",
+        secondary="email_subscription",
+        viewonly=True,
     )
 
     footnotes: ClassVar[list] = []
@@ -140,25 +143,27 @@ class Chapter(Base):
     )
 
 
-class Subscriber(Base):
-    __tablename__ = "subscriber"
+class EmailSubscriber(Base):
+    __tablename__ = "email_subscriber"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    email: Mapped[str] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(String, nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
 
-    series_subscribers: Mapped[list[SeriesSubscriber]] = relationship(
-        "SeriesSubscriber",
-        back_populates="subscriber",
-        uselist=False,
+    email_subscriptions: Mapped[list[EmailSubscription]] = relationship(
+        overlaps="email_subcribers"
+    )
+    subscribed_series_by_id: Mapped[dict[int, Series]] = relationship(
+        secondary="email_subscription",
+        collection_class=attribute_keyed_dict("id"),
+        overlaps="email_subscriptions",
     )
 
 
-class SeriesSubscriber(Base):
-    __tablename__ = "series_subscriber"
+class EmailSubscription(Base):
+    __tablename__ = "email_subscription"
     __table_args__ = (UniqueConstraint("series_id", "subscriber_id"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -166,47 +171,9 @@ class SeriesSubscriber(Base):
         Integer, ForeignKey("series.id"), nullable=False
     )
     subscriber_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("subscriber.id"), nullable=False
+        Integer, ForeignKey("email_subscriber.id"), nullable=False
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
-    )
-
-    series: Mapped[Series] = relationship(
-        "Series",
-        back_populates="series_subscribers",
-        uselist=False,
-    )
-    subscriber: Mapped[Subscriber] = relationship(
-        "Subscriber",
-        back_populates="series_subscribers",
-        uselist=False,
-    )
-    send_event: Mapped[ChapterSendEvent] = relationship(
-        "ChapterSendEvent",
-        back_populates="series_subscriber",
-        uselist=False,
-    )
-
-
-class ChapterSendEvent(Base):
-    __tablename__ = "chapter_send_event"
-    __table_args__ = (UniqueConstraint("chapter_id", "series_subscriber_id"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    chapter_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("chapter.id"), nullable=False
-    )
-    series_subscriber_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("series_subscriber.id"), nullable=False
-    )
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=utcnow
-    )
-
-    series_subscriber: Mapped[SeriesSubscriber] = relationship(
-        "SeriesSubscriber",
-        uselist=False,
     )

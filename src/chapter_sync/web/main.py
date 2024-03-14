@@ -20,7 +20,6 @@ def create_app(routes=routes):
             path=route["path"],
             endpoint=route["endpoint"],
             methods=[route["method"]],
-            tags=route["tags"],
         )
 
     return app

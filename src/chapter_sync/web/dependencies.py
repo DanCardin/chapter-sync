@@ -12,6 +12,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from chapter_sync.cli import base
+from chapter_sync.console import Console
+from chapter_sync.email import EmailClient
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,10 @@ def console(
     chapter_sync: Annotated[base.ChapterSync, Depends(chapter_sync)],
 ) -> Generator[base.Console, None, None]:
     yield from base.console(chapter_sync)
+
+
+def email_client(console: Annotated[Console, Depends(console)]) -> EmailClient:
+    return base.email_client(console)
 
 
 @cache

@@ -15,7 +15,7 @@ from chapter_sync.cli.series import Add, Export, List, Remove, Set, Subscribe
 from chapter_sync.console import Console
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import detect, get_infer_handler, get_settings_handler
-from chapter_sync.schema import Series, SeriesSubscriber
+from chapter_sync.schema import EmailSubscription, Series
 
 
 def add(
@@ -131,10 +131,10 @@ def subscribe(
     console: Annotated[Console, cappa.Dep(console)],
 ):
     conflicts = database.scalars(
-        select(SeriesSubscriber).where(
+        select(EmailSubscription).where(
             or_(
-                SeriesSubscriber.subscriber_id == command.subscriber,
-                SeriesSubscriber.series_id == command.series,
+                EmailSubscription.subscriber_id == command.subscriber,
+                EmailSubscription.series_id == command.series,
             )
         )
     ).all()
@@ -144,7 +144,7 @@ def subscribe(
             code=1,
         )
 
-    sub = SeriesSubscriber(
+    sub = EmailSubscription(
         subscriber_id=command.subscriber,
         series_id=command.series,
     )
