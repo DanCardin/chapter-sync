@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chapter-sync"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = [
     "Dan Cardin <ddcardin@gmail.com>",
@@ -10,6 +10,11 @@ repository = "https://github.com/dancardin/sqlalchemy-declarative-extensions"
 readme = 'README.md'
 
 keywords = [
+  "chapter",
+  "sync",
+  "epub",
+  "ebook",
+  "leech",
 ]
 
 include = [
