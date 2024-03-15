@@ -3,6 +3,7 @@
 [![Actions Status](https://github.com/DanCardin/chapter-sync/actions/workflows/test.yml/badge.svg)](https://github.com/dancardin/chapter-sync/actions)
 [![codecov](https://codecov.io/gh/DanCardin/chapter-sync/graph/badge.svg?token=e8T6QN2tTz)](https://codecov.io/gh/DanCardin/chapter-sync)
 [![Documentation Status](https://readthedocs.org/projects/chapter-sync/badge/?version=latest)](https://chapter-sync.readthedocs.io/en/latest/?badge=latest)
+[![Docker](https://img.shields.io/docker/v/dancardin/chapter-sync?label=Docker&style=flat)](https://hub.docker.com/r/dancardin/chapter-sync)
 
 - [Full documentation here](https://chapter-sync.readthedocs.io/en/latest/).
 - [Installation/Usage](https://chapter-sync.readthedocs.io/en/latest/installation.html).
