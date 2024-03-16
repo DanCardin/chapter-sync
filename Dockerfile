@@ -28,10 +28,11 @@ COPY . .
 RUN poetry install --only-root
 
 FROM python:3.11 as final
-RUN apt update
+RUN apt update && mkdir /data
 
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+ENV DATABASE_NAME=/data/chapter-sync.sqlite
 
 COPY --from=base /opt/venv /opt/venv
 

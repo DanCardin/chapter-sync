@@ -30,7 +30,7 @@ services:
     restart: always
     command: watch
     volumes:
-      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
+      - "${PWD}:/data"
 
   # optionally
 
@@ -41,7 +41,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
+      - "${PWD}:/data"
 ```
 
 In either case you can `docker exec` into the container to interact with the
@@ -63,3 +63,17 @@ pipx install chapter-sync
 ```
 
 and then invoked with the CLI: `chapter-sync`
+
+### Environment Variables
+
+The CLI (and thus docker) will read from the following environment variables,
+which in turn correspond to the indicated CLI flags as defaults.
+
+These will most often be useful in configuring docker/docker-compose where it
+may be more convenient to configure environment variables than it is to supply
+CLI flags.
+
+- `DATABASE_NAME`: `chapter-sync --database-name`
+- `HOST`: `chapter-sync web --host`
+- `PORT`: `chapter-sync web --port`
+- `ROOT_PATH`: `chapter-sync web --root-path`

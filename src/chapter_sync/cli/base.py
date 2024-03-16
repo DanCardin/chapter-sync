@@ -83,7 +83,7 @@ class ChapterSync:
 
     database_name: Annotated[
         str,
-        cappa.Arg(short=True, long=True),
+        cappa.Arg(short=True, long=True, default=cappa.Env("DATABASE_NAME")),
         Doc("The name of the database file. Defaults to 'chapter_sync.sqlite'."),
     ] = "chapter_sync.sqlite"
     verbose: Annotated[
@@ -152,15 +152,25 @@ class Watch(Sync):
 
 @dataclass
 class Web:
-    host: Annotated[str, cappa.Arg(short=True, long=True)] = "127.0.0.1"
-    port: Annotated[int, cappa.Arg(short=True, long=True)] = 8000
+    host: Annotated[
+        str, cappa.Arg(short=True, long=True, default=cappa.Env("HOST"))
+    ] = "127.0.0.1"
+    port: Annotated[
+        int, cappa.Arg(short=True, long=True, default=cappa.Env("PORT"))
+    ] = 8000
+    root_path: Annotated[str, cappa.Arg(long=True, default=cappa.Env("ROOT_PATH"))] = ""
 
     def __call__(self):
         import uvicorn
 
         from chapter_sync.web.main import create_app
 
-        uvicorn.run(create_app(), host=self.host, port=self.port)
+        uvicorn.run(
+            create_app(),
+            host=self.host,
+            port=self.port,
+            root_path=self.root_path,
+        )
 
 
 def run():

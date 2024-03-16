@@ -7,7 +7,7 @@ services:
     restart: always
     command: watch
     volumes:
-      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
+      - "${PWD}:/data"
 
   web:
     image: dancardin/chapter-sync:latest
@@ -16,4 +16,4 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - "${PWD}/chapter_sync.sqlite:/chapter-sync/chapter_sync.sqlite"
+      - "${PWD}:/data"
