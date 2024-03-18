@@ -70,7 +70,7 @@ def make_cover_from_url(url, title, author):
             cover = _convert_to_png(cover)
     except Exception as e:
         logger.info("Encountered an error downloading cover: " + str(e))
-        cover = make_cover_image(title, author)
+        return make_cover_image(title, author)
 
     return cover.read()
 
