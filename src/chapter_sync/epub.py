@@ -9,11 +9,11 @@ import uuid
 import zipfile
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, BinaryIO
+from typing import BinaryIO
 
 import xmltodict
 
-from chapter_sync.cover import Cover
+from chapter_sync.cover import generate_cover_image
 from chapter_sync.schema import Chapter, Series
 
 templates = importlib.resources.files("chapter_sync.templates")
@@ -129,9 +129,7 @@ class Epub:
         cls,
         series: Series,
         *chapters: Chapter,
-        cover_options: dict[str, Any] | None = None,
     ) -> Epub:
-        cover = Cover.from_options(cover_options)
         return cls(
             title=series.title,
             author=series.author or "Unkown",
@@ -145,7 +143,7 @@ class Epub:
             cover_image=EpubFile(
                 id="cover_image",
                 path="images/cover.png",
-                contents=cover.generate_image(series),
+                contents=generate_cover_image(series),
                 filetype="image/png",
             ),
             footnotes=EpubFile(
