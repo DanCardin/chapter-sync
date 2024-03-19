@@ -1,158 +1,89 @@
-<nav
-  class="bg-white border-gray-200 px-2 sm:px-4 py-2.5 rounded dark:bg-gray-900"
->
-  <div class="flex items-center justify-between mx-0">
-    <div class="flex items-center">
-      <button
-        type="button"
-        id="dropdownDefaultButton"
-        data-dropdown-toggle="dropdown"
-        data-dropdown-trigger="hover"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-      >
-        <img
-          src="/static/icon.svg"
-          class="h-6 sm:h-9 dark:text-white"
-          alt="Logo"
-          />
-      </button>
-      <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-        <ul class="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownDefaultButton">
-          <li>
-            <a href="/" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Series</a>
-          </li>
-          <li>
-            <a href="/subscriber" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subscriber</a>
-          </li>
+<nav>
+  <ul>
+    <li>
+    </li>
+    <li>
+      <details class="dropdown">
+        <summary>
+          <img src="/static/icon.svg" alt="Logo" style="position: absolute; width: 1.5rem;" />
+          <span style="margin-right: 1.5rem"></span>
+        </summary>
+        <ul>
+          <li><a href="/">Series</a></li>
+          <li><a href="/subscriber">Subscribers</a></li>
         </ul>
-      </div>
-
-      <a href="/" class="flex items-center mx-4">
-        <span
-          class="self-center text-xl font-semibold whitespace-nowrap dark:text-white"
-          >Chapter Sync</span
-        >
-      </a>
-      <nav class="flex" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+      </details>
+    </li>
+    <li>
+      <a href="/">ChapterSync</a>
+    </li>
+    <li>
+      <nav aria-label="breadcrumb">
+        <ul>
           {% if series %}
-          <li class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-400">
-            Series
-          </li>
-          <li class="inline-flex items-center">
-            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-            </svg>
-            <a href="/series/{{ series.id }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+          <li>Series</li>
+          <li>
+            <a href="/series/{{ series.id }}">
               {{ series.title }}
             </a>
           </li>
-
           {% if chapter %}
-          <li class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-400">
-            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-            </svg>
-            Chapter
-          </li>
-
-          <li class="inline-flex items-center">
-            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-            </svg>
-            <a href="/series/{{ series.id }}/chapter/{{ chapter.id }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+          <li>Chapter</li>
+          <li>
+            <a href="/series/{{ series.id }}/chapter/{{ chapter.id }}">
               {{ chapter.title }}
             </a>
           </li>
           {% endif %}
-
-          <!-- -->
           {% endif %}
-        </ol>
+        </ul>
       </nav>
-    </div>
-
-    <div class="flex md:order-2">
-    <button
-      id="theme-toggle"
-      type="button"
-      class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5"
-    >
-      <svg
-        id="theme-toggle-dark-icon"
-        class="hidden w-5 h-5"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-        ></path>
-      </svg>
-      <svg
-        id="theme-toggle-light-icon"
-        class="hidden w-5 h-5"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-        ></path>
-      </svg>
-    </button>
-      </div>
-  </div>
+    </li>
+  </ul>
+  <ul>
+    <li>
+      <a id="theme-toggle">
+        <svg id="theme-toggle-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32"
+          fill="currentColor" class="icon-theme-toggle">
+          <clipPath id="theme-toggle-cutout">
+            <path d="M0-11h25a1 1 0 0017 13v30H0Z" />
+          </clipPath>
+          <g clipPath="url(#theme-toggle-cutout)">
+            <circle cx="16" cy="16" r="8.4" />
+            <path
+              d="M18.3 3.2c0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3S14.7.9 16 .9s2.3 1 2.3 2.3zm-4.6 25.6c0-1.3 1-2.3 2.3-2.3s2.3 1 2.3 2.3-1 2.3-2.3 2.3-2.3-1-2.3-2.3zm15.1-10.5c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zM3.2 13.7c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3S.9 17.3.9 16s1-2.3 2.3-2.3zm5.8-7C9 7.9 7.9 9 6.7 9S4.4 8 4.4 6.7s1-2.3 2.3-2.3S9 5.4 9 6.7zm16.3 21c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zm2.4-21c0 1.3-1 2.3-2.3 2.3S23 7.9 23 6.7s1-2.3 2.3-2.3 2.4 1 2.4 2.3zM6.7 23C8 23 9 24 9 25.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3z" />
+          </g>
+        </svg>
+      </a>
+    </li>
+    <li></li>
+  </ul>
 </nav>
-    <script>
-      var themeToggleDarkIcon = document.getElementById(
-        "theme-toggle-dark-icon",
-      );
-      var themeToggleLightIcon = document.getElementById(
-        "theme-toggle-light-icon",
-      );
+<script>
+  var themeToggleBtn = document.getElementById("theme-toggle");
+  var themeToggleSvg = document.getElementById("theme-toggle-svg");
 
-      // Change the icons inside the button based on previous settings
-      if (
-        localStorage.getItem("color-theme") === "dark" ||
-        (!("color-theme" in localStorage) &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ) {
-        themeToggleLightIcon.classList.remove("hidden");
-      } else {
-        themeToggleDarkIcon.classList.remove("hidden");
-      }
+  if (
+    localStorage.getItem("color-theme") === "dark" ||
+    (!("color-theme" in localStorage) &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  ) {
+    document.documentElement.dataset.theme = "dark";
+    themeToggleSvg.classList.add("moon");
+  } else {
+    document.documentElement.dataset.theme = "light";
+  }
 
-      var themeToggleBtn = document.getElementById("theme-toggle");
+  themeToggleBtn.addEventListener("click", function () {
+    let dataset = document.documentElement.dataset;
+    if (dataset.theme === "dark") {
+      dataset.theme = "light";
+      themeToggleSvg.classList.remove("moon");
+    } else {
+      dataset.theme = "dark";
+      themeToggleSvg.classList.add("moon");
+    }
 
-      themeToggleBtn.addEventListener("click", function () {
-        // toggle icons inside button
-        themeToggleDarkIcon.classList.toggle("hidden");
-        themeToggleLightIcon.classList.toggle("hidden");
-
-        // if set via local storage previously
-        if (localStorage.getItem("color-theme")) {
-          if (localStorage.getItem("color-theme") === "light") {
-            document.documentElement.classList.add("dark");
-            localStorage.setItem("color-theme", "dark");
-          } else {
-            document.documentElement.classList.remove("dark");
-            localStorage.setItem("color-theme", "light");
-          }
-
-          // if NOT set via local storage previously
-        } else {
-          if (document.documentElement.classList.contains("dark")) {
-            document.documentElement.classList.remove("dark");
-            localStorage.setItem("color-theme", "light");
-          } else {
-            document.documentElement.classList.add("dark");
-            localStorage.setItem("color-theme", "dark");
-          }
-        }
-      });
-    </script>
-  </div>
-</div>
+    localStorage.setItem("color-theme", dataset.theme);
+  });
+</script>

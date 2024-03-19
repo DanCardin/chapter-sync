@@ -1,157 +1,102 @@
 {% extends "base.html" %}
 {% block body %}
-  <form method="post" action="/series">
-    <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 mb-2 flex">
-      <div class="flex flex-1">
-        <div class="grid grid-cols-3 gap-6">
-          <div>
-            <label for="name"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
-            <input type="text"
-                   name="name"
-                   id="name"
-                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                   placeholder=""
-                   required />
-          </div>
-          <div class="col-span-2">
-            <label for="url"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">URL</label>
-            <input type="text"
-                   name="url"
-                   id="url"
-                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                   placeholder=""
-                   required />
-          </div>
-          <div class="col-span-2">
-            <label for="type"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Type</label>
-            <select id="type"
-                    name="type"
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-              <option value="custom">Custom</option>
-              <option value="royal-road">Royal Road</option>
-            </select>
-          </div>
-          <div class="self-center">
-            <label for="auto"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Auto Attribute</label>
-            <label class="inline-flex items-center cursor-pointer">
-              <input id="auto"
-                     name="auto"
-                     type="checkbox"
-                     value="true"
-                     checked
-                     class="sr-only peer">
-              <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
-              </div>
-            </label>
-          </div>
-          <div id="author-input">
-            <label for="author"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Author</label>
-            <input type="text"
-                   name="author"
-                   id="author"
-                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                   placeholder="" />
-          </div>
-          <div id="title-input">
-            <label for="title"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
-            <input type="text"
-                   name="title"
-                   id="title"
-                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                   placeholder="" />
-          </div>
-          <div id="cover_url-input">
-            <label for="cover_url"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cover URL</label>
-            <input type="text"
-                   name="cover_url"
-                   id="cover_url"
-                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                   placeholder="" />
-          </div>
-          <div class="col-span-3">
-            <label for="settings"
-                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Settings</label>
-            <textarea id="settings"
-                      name="settings"
-                      rows="3"
-                      class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="{}"></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="flex-none justify-end">
-        <div class="flex flex-1">
-          <button type="submit"
-                  class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800 text-center inline-flex items-center">
-            <svg class="w-6 h-6 text-gray-800 dark:text-white"
-                 aria-hidden="true"
-                 xmlns="http://www.w3.org/2000/svg"
-                 fill="currentColor"
-                 viewBox="0 0 24 24">
-              <path fill-rule="evenodd" d="M9 7V2.2a2 2 0 0 0-.5.4l-4 3.9a2 2 0 0 0-.3.5H9Zm2 0V2h7a2 2 0 0 1 2 2v9.3l-2-2a1 1 0 0 0-1.4 1.4l.3.3h-6.6a1 1 0 1 0 0 2h6.6l-.3.3a1 1 0 0 0 1.4 1.4l2-2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Z" clip-rule="evenodd" />
-            </svg>
-            Add
-          </button>
-        </div>
-      </div>
-    </div>
-  </form>
-  <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
-    <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
-      Series
-    </h1>
-    {% if not series_list %}
-      <p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
-        There are no series available.
-      </p>
-    {% else %}
-      <div class="relative overflow-x-auto">
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3">Link</th>
-              <th scope="col" class="px-6 py-3">Title</th>
-              <th scope="col" class="px-6 py-3">Author</th>
-              <th scope="col" class="px-6 py-3">Chapters</th>
-              <th scope="col" class="px-6 py-3">Last Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in series_list %}
-              <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  <a href="{{ s.url }}">Link</a>
-                </td>
-                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  <a href="/series/{{ s.id }}">{{ s.title }}</a>
-                </td>
-                <td class="px-6 py-4">{{ s.author }}</td>
-                <td class="px-6 py-4">{{ s.chapters | length }}</td>
-                <td class="px-6 py-4">{{ s.last_built_at and s.last_built_at | relative_datetime }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
-  </div>
+  <h1>Series</h1>
+  {% if not series_list %}
+    <p>There are no series available.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Link</th>
+          <th scope="col">Title</th>
+          <th scope="col">Author</th>
+          <th scope="col">Chapters</th>
+          <th scope="col">Last Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in series_list %}
+          <tr>
+            <td>
+              <a href="{{ s.url }}">Link</a>
+            </td>
+            <td>
+              <a href="/series/{{ s.id }}">{{ s.title }}</a>
+            </td>
+            <td>{{ s.author }}</td>
+            <td>{{ s.chapters | length }}</td>
+            <td>{{ s.last_built_at and s.last_built_at | relative_datetime }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <article>
+    <form method="post" action="/series">
+      <fieldset class="grid">
+        <label>
+          Name
+          <input type="text" name="name" id="name" placeholder="Name" required />
+        </label>
+        <label>
+          URL
+          <input type="text" name="url" id="url" placeholder="https://..." required />
+        </label>
+        <label>
+          Type
+          <select id="type" name="type">
+            <option value="custom">Custom</option>
+            <option value="royal-road">Royal Road</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset class="grid">
+        <label>
+          Auto Attribute
+          <label>
+            <input id="auto"
+                   name="auto"
+                   type="checkbox"
+                   value="true"
+                   checked
+                   role="switch" />
+          </label>
+        </label>
+        <label id="author-input">
+          Author
+          <input type="text" name="author" id="author" placeholder="" />
+        </label>
+        <label id="title-input">
+          Title
+          <input type="text" name="title" id="title" placeholder="" />
+        </label>
+        <label id="cover-url-input">
+          Cover URL
+          <input type="text" name="cover_url" id="cover_url" placeholder="" />
+        </label>
+      </fieldset>
+      <fieldset class="grid" id="auto-inputs">
+        <label>
+          Settings
+          <textarea id="settings" name="settings" rows="3" placeholder="{}" aria-label="Settings JSON">
+        </textarea>
+        </label>
+      </fieldset>
+      <fieldset class="grid" id="auto-inputs">
+        <input type="submit" value="Add">
+      </fieldset>
+    </form>
+  </article>
   <script type="text/javascript">
       const auto = document.querySelector("#auto");
-      const author = document.querySelector("#author-input");
-      const title = document.querySelector("#title-input");
-      const cover_url = document.querySelector("#cover_url-input")
+      const author_input = document.querySelector("#author-input");
+      const title_input = document.querySelector("#title-input");
+      const cover_url_input = document.querySelector("#cover-url-input");
 
       function clickHandler(value) {
-        author.hidden = value;
-        title.hidden = value;
-        cover_url.hidden = value;
+        author_input.hidden = value;
+        title_input.hidden = value;
+        cover_url_input.hidden = value;
       } 
 
       clickHandler(auto.checked);
