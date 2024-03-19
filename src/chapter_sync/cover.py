@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import logging
+import contextlib
 import textwrap
-from dataclasses import asdict, dataclass, fields
+from dataclasses import dataclass
 from io import BytesIO
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import requests
 from PIL import Image, ImageDraw, ImageFont
@@ -14,115 +14,74 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Cover:
-    fontname: str | None = None
-    fontsize: int | None = None
-    width: int | None = None
-    height: int | None = None
-    wrapat: int | None = None
-    bgcolor: tuple | None = None
-    textcolor: tuple | None = None
-    cover_url: str | None = None
-
-    @classmethod
-    def from_options(cls, options: dict[str, Any] | None = None):
-        if options is None:
-            return cls()
-
-        return cls(
-            **{
-                field.name: options[field.name]
-                for field in fields(cls)
-                if field.name in options
-            }
-        )
-
-    @classmethod
-    def default(cls):
-        return cls()
-
-    def generate_image(self, series: Series):
-        if self.cover_url:
-            return make_cover_from_url(self.cover_url, series.title, series.author)
-
-        if series.cover_url:
-            return make_cover_from_url(series.cover_url, series.title, series.author)
-
-        data = {k: v for k, v in asdict(self).items() if v is not None}
-        return make_cover_image(series.title, series.author, **data)
+class CoverOptions:
+    font_name: str = "Helvetica"
+    font_size: int = 40
+    width: int = 600
+    height: int = 800
+    wrap_at: int = 30
+    bg_color: tuple = (120, 20, 20)
+    text_color: tuple = (255, 255, 255)
 
 
-logger = logging.getLogger(__name__)
+def generate_cover_image(series: Series, options: CoverOptions = CoverOptions()):
+    url = series.cover_url
+
+    if url:
+        with contextlib.suppress(Exception):
+            return make_cover_from_url(url)
+
+    return make_cover_image(series.title, series.author, options=options)
 
 
-def make_cover_from_url(url, title, author):
-    try:
-        logger.info("Downloading cover from " + url)
-        img = requests.Session().get(url)
-        cover = BytesIO(img.content)
+def make_cover_from_url(url: str) -> bytes:
+    img = requests.Session().get(url)
+    cover = BytesIO(img.content)
 
-        imgformat = Image.open(cover).format
-        # The `Image.open` read a few bytes from the stream to work out the
-        # format, so reset it:
-        cover.seek(0)
+    imgformat = Image.open(cover).format
+    cover.seek(0)
 
-        if imgformat != "PNG":
-            cover = _convert_to_png(cover)
-    except Exception as e:
-        logger.info("Encountered an error downloading cover: " + str(e))
-        return make_cover_image(title, author)
+    if imgformat != "PNG":
+        png_cover = BytesIO()
+        Image.open(cover).save(png_cover, format="PNG")
+        png_cover.name = "cover.png"
+        png_cover.seek(0)
+        cover = png_cover
 
     return cover.read()
 
 
-def _convert_to_png(image_bytestream):
-    png_image = BytesIO()
-    Image.open(image_bytestream).save(png_image, format="PNG")
-    png_image.name = "cover.png"
-    png_image.seek(0)
-
-    return png_image
-
-
 def make_cover_image(
-    title,
-    author,
-    width=600,
-    height=800,
-    fontname="Helvetica",
-    fontsize=40,
-    bgcolor=(120, 20, 20),
-    textcolor=(255, 255, 255),
-    wrap_at=30,
+    title: str, author: str | None = None, options: CoverOptions = CoverOptions()
 ):
-    img = Image.new("RGBA", (width, height), bgcolor)
+    title_font = select_font(options.font_name, size=options.font_size)
+    author_font = select_font(options.font_name, size=options.font_size - 2)
+
+    img = Image.new("RGBA", (options.width, options.height), options.bg_color)
     draw = ImageDraw.Draw(img)
 
-    title = textwrap.fill(title, wrap_at)
-    author = textwrap.fill(author or "", wrap_at)
+    title = textwrap.fill(title, options.wrap_at)
+    author = textwrap.fill(author or "", options.wrap_at)
 
-    font = _safe_font(fontname, size=fontsize)
+    title_len = title_font.getlength(title)
+    title_position = (options.width / 2 - title_len / 2, 100)
+    draw.text(title_position, title, options.text_color, font=title_font)
 
-    draw.text((width / 2, 100), title, textcolor, font=font)
-
-    font = _safe_font(fontname, size=fontsize - 2)
-    draw.text((width / 2, 200), author, textcolor, font=font)
+    author_len = author_font.getlength(author)
+    author_position = (options.width / 2 - author_len / 2, 200)
+    draw.text(author_position, author, options.text_color, font=author_font)
 
     output = BytesIO()
     img.save(output, "PNG")
     output.name = "cover.png"
-    # writing left the cursor at the end of the file, so reset it
+
     output.seek(0)
     return output.read()
 
 
-def _safe_font(preferred, *args, **kwargs):
+def select_font(preferred, *, size: int = 10):
     for font in (preferred, "Helvetica", "FreeSans", "Arial"):
-        try:
-            return ImageFont.truetype(*args, font=font, **kwargs)
-        except OSError:
-            pass
+        with contextlib.suppress(OSError):
+            return ImageFont.truetype(font=font, size=size)
 
-    # This is pretty terrible, but it'll work regardless of what fonts the
-    # system has. Worst issue: can't set the size.
     return ImageFont.load_default()
