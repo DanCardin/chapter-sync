@@ -57,6 +57,9 @@ def chapter_handler(
     soup = get_soup(requests, url, console=console)
 
     existing_chapters = {c.url: c for c in series.chapters}
+    existing_chapter_number = -1
+    if len(series.chapters) > 0:
+        existing_chapter_number = series.chapters[-1].number
 
     chapter_elements = soup.select("#chapters tbody tr[data-url]")
     for number, chapter in enumerate(chapter_elements, start=1):
@@ -65,6 +68,10 @@ def chapter_handler(
         if chapter_url in existing_chapters:
             continue
 
+        new_chapter_number = number
+        if existing_chapter_number > 0:
+            new_chapter_number = existing_chapter_number + 1
+
         title = chapter.find("a", href=True).string.strip()  # type: ignore
         yield _collect_chapter(
             requests,
@@ -72,8 +79,9 @@ def chapter_handler(
             chapter_url,
             console=console,
             title=title,
-            number=number,
+            number=new_chapter_number,
         )
+        existing_chapter_number = new_chapter_number
 
 
 def _collect_chapter(
