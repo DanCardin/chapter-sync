@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pendulum
 from requests import Session
 
-from chapter_sync.console import Status
+from chapter_sync.console import Console
 from chapter_sync.request import (
     clean_emails,
     clean_namespaced_elements,
@@ -46,7 +46,7 @@ def settings_handler(raw: dict | None):
 
 
 def chapter_handler(
-    requests: Session, series: Series, settings: Settings, status: Status
+    requests: Session, series: Series, settings: Settings, console: Console
 ) -> Generator[Chapter, None, None]:
     # TODO: It's likely most kinds of sites can be handled in terms of the "custom" handler
     #       based on TOC. The main drawback would be things like login requirements, or
@@ -54,7 +54,7 @@ def chapter_handler(
     #       straghtforward way. And login could be handled by the requests session input.
     url = series.url
 
-    soup = get_soup(requests, url, status=status)
+    soup = get_soup(requests, url, console=console)
 
     existing_chapters = {c.url: c for c in series.chapters}
 
@@ -70,7 +70,7 @@ def chapter_handler(
             requests,
             series,
             chapter_url,
-            status=status,
+            console=console,
             title=title,
             number=number,
         )
@@ -81,12 +81,12 @@ def _collect_chapter(
     series: Series,
     url: str,
     *,
-    status: Status,
+    console: Console,
     title: str | None = None,
     number: int = 1,
 ):
-    status.update(f"Extracting chapter at '{url}'")
-    soup = get_soup(requests, url, status=status)
+    console.trace(f"Extracting chapter at '{url}'")
+    soup = get_soup(requests, url, console=console)
 
     clean_namespaced_elements(soup)
     clean_emails(soup)
