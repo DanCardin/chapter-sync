@@ -4,11 +4,15 @@ import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from chapter_sync.cli.base import alembic_config, database_url
+from chapter_sync.web.dependencies import chapter_sync, database
 from chapter_sync.web.routes import routes
 
 
 def create_app(routes=routes):
     logging.basicConfig(level="INFO")
+
+    boostrap_db()
 
     app = FastAPI()
 
@@ -23,3 +27,10 @@ def create_app(routes=routes):
         )
 
     return app
+
+
+def boostrap_db():
+    app = chapter_sync()
+    url = database_url(app)
+    alembic = alembic_config(url)
+    list(database(app, alembic))
