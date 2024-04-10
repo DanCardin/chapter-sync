@@ -1,11 +1,13 @@
 from collections.abc import Generator
 from dataclasses import dataclass
+from typing import cast
 
 import cappa
 from pendulum import now
 from requests import Session
 
 from chapter_sync.console import Status
+from chapter_sync.handlers.base import ChapterHandlerResult, ChapterInvalidation
 from chapter_sync.request import (
     clean_emails,
     clean_namespaced_elements,
@@ -13,6 +15,8 @@ from chapter_sync.request import (
     join_path,
     published_at,
     strip_colors,
+    strip_display_none_content,
+    strip_spoilers,
 )
 from chapter_sync.schema import Chapter, Series
 
@@ -23,16 +27,24 @@ from chapter_sync.schema import Chapter, Series
 @dataclass
 class Settings:
     content_selector: str = ""
+
     # If present, find something within `content` to use a chapter title; if not found, the link text to it will be used
     content_title_selector: str | None = None
+
     # If present, find a specific element in the `content` to be the chapter text
     content_text_selector: str | None = None
+
     # If present, it looks for chapters linked from `url`. If not, it assumes `url` points to a chapter.
     chapter_selector: str | None = None
+
     # If present, use to find a link to the next content page (only used if not using chapter_selector)
     next_selector: str | None = None
+
     # If present, use to filter out content that matches the selector
     filter_selector: str | None = None
+
+    # If present, use to identify the pubilshed date of the chapter
+    published_at_selector: str | None = None
 
 
 def settings_handler(raw: dict | None):
@@ -47,7 +59,7 @@ def settings_handler(raw: dict | None):
 
 def chapter_handler(
     requests: Session, series: Series, settings: Settings, status: Status
-) -> Generator[Chapter, None, None]:
+) -> ChapterHandlerResult:
     if settings.chapter_selector:
         yield from find_by_chapter(requests, series, settings, status=status)
     elif settings.next_selector:
@@ -58,28 +70,29 @@ def chapter_handler(
 
 def find_by_chapter(
     requests: Session, series: Series, settings: Settings, status: Status
-) -> Generator[Chapter, None, None]:
+) -> ChapterHandlerResult:
     assert settings.chapter_selector
 
     url = series.url
 
     soup = get_soup(requests, url, status=status)
 
-    assert soup.head
-    base = soup.head.base and soup.head.base.get("href") or False
-
-    existing_chapters = {c.url: c for c in series.chapters}
+    existing_chapters = {c.number: c for c in series.chapters}
 
     existing_chapter = None
-    for chapter_link in soup.select(settings.chapter_selector):
+    for number, chapter_link in enumerate(
+        soup.select(settings.chapter_selector), start=1
+    ):
         chapter_url = str(chapter_link.get("href"))
 
-        if chapter_url in existing_chapters:
-            existing_chapter = existing_chapters[chapter_url]
-            continue
+        if number in existing_chapters:
+            existing_chapter = existing_chapters[number]
 
-        if base:
-            chapter_url = join_path(base, chapter_url)
+            if existing_chapter.url != chapter_url:
+                # Invalidate subsequent chapters if the URL corresponding to a given chapter number changes
+                yield ChapterInvalidation(number)
+
+        chapter_url = join_path(series.url, chapter_url)
 
         for chapter in _collect_chapter(
             requests,
@@ -87,8 +100,8 @@ def find_by_chapter(
             settings,
             chapter_url,
             status=status,
-            title=chapter_link.string,
-            number=existing_chapter.number + 1 if existing_chapter else 1,
+            title=cast(str, chapter_link.string).strip(),
+            number=number,
         ):
             yield chapter
             existing_chapter = chapter
@@ -157,6 +170,7 @@ def _collect_chapter(
     clean_namespaced_elements(soup)
     clean_emails(soup)
     strip_colors(soup)
+    strip_spoilers(soup)
 
     for content in soup.select(settings.content_selector):
         if settings.filter_selector:
@@ -173,6 +187,8 @@ def _collect_chapter(
 
         content.name = "div"
 
+        strip_display_none_content(soup, content)
+
         assert title
         time = now()
         yield Chapter(
@@ -181,7 +197,7 @@ def _collect_chapter(
             url=url,
             number=number,
             content=content.prettify(),
-            published_at=published_at(soup) or time,
+            published_at=published_at(soup, settings.published_at_selector) or time,
             created_at=time,
         )
 

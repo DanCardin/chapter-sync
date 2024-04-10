@@ -89,7 +89,10 @@ def strip_colors(soup: BeautifulSoup):
         tag["style"] = re.sub(r"(?:color|background)\s*:[^;]+;?", "", tag["style"])
 
 
-def published_at(soup: BeautifulSoup) -> pendulum.DateTime | None:
+def published_at(soup: BeautifulSoup, selector: str | None) -> pendulum.DateTime | None:
+    if selector is None:
+        selector = 'meta[property="article:published_time"]'
+
     dt_string = None
 
     published_time = soup.find("meta", {"property": "article:published_time"})
@@ -104,3 +107,19 @@ def published_at(soup: BeautifulSoup) -> pendulum.DateTime | None:
         return cast(pendulum.DateTime, pendulum.parse(dt_string))
     except Exception:
         return None
+
+
+def strip_spoilers(soup):
+    for spoiler in soup.find_all(class_=("spoiler-new")):
+        spoiler.decompose()
+
+
+def strip_display_none_content(soup, content):
+    for style in soup.find_all("style"):
+        match = re.match(r"\s*\.(\w+)\s*{[^}]*display:\s*none;[^}]*}", style.string)
+        if not match:
+            continue
+
+        css_class = match.group(1)
+        for warning in content.find_all(class_=css_class):
+            warning.decompose()

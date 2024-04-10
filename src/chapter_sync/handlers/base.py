@@ -1,11 +1,23 @@
+from __future__ import annotations
+
 import functools
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from dataclasses import dataclass
 from typing import Literal, TypeAlias
 
 import cappa
 
+from chapter_sync.schema import Chapter
+
+
+@dataclass
+class ChapterInvalidation:
+    number: int
+
+
 HandlerTypes: TypeAlias = Literal["custom", "royal-road"]
+ChapterHandlerResult: TypeAlias = Generator[Chapter | ChapterInvalidation, None, None]
 
 
 def detect(url: str) -> HandlerTypes:
