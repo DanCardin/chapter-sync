@@ -41,8 +41,7 @@ def test_collect_chapter(requests: Session, console: Console, responses: Request
         filter_selector=".skipme",
         next_selector='a[rel="next"]:not([href*="prologue"])',
     )
-    with console.status("") as status:
-        chapter = list(chapter_handler(requests, series, settings, status))
+    chapter = list(chapter_handler(requests, series, settings, console))
 
     assert len(chapter) == 2
 

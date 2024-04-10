@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from chapter_sync.cli.base import Sync, Watch, console, database, email_client
-from chapter_sync.console import Console, Status
+from chapter_sync.console import Console
 from chapter_sync.email import EmailClient
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import get_chapter_handler, get_settings_handler
@@ -26,9 +26,10 @@ def watch(
     try:
         with console.status("Syncing series") as status:
             while True:
-                sync(command, database, console, email_client, status)
-                time.sleep(command.interval)
+                sync(command, database, console, email_client)
+
                 status.update("Sleeping")
+                time.sleep(command.interval)
     except KeyboardInterrupt:
         console.info("Stopping")
         return
@@ -39,52 +40,41 @@ def sync(
     database: Annotated[Session, cappa.Dep(database)],
     console: Annotated[Console, cappa.Dep(console)],
     email_client: Annotated[EmailClient, cappa.Dep(email_client)],
-    status: Status | None = None,
 ):
-    requires_status = status is None
-    if status is None:
-        status = console.status("Syncing series")
-        status.start()
-
     query = select(Series).options(selectinload(Series.chapters))
     if command.series:
         query = query.where(Series.id.in_(command.series))
 
     series = database.scalars(query).all()
 
-    status.update(f"Found {len(series)} series")
+    console.info(f"Found {len(series)} series")
 
     for s in series:
         if command.update:
-            update_series(database, s, status)
-            status.update(f"Updated series: '{s.name}'")
+            update_series(database, s, console)
+            console.info(f"Updated series: '{s.name}'")
 
         if command.save:
-            save_series_ebooks(database, s, status)
+            save_series_ebooks(database, s, console)
 
         if command.send:
-            send_series(command, database, s, email_client, status)
-
-    status.update("Done")
-
-    if requires_status:
-        status.stop()
+            send_series(command, database, s, email_client, console)
 
 
-def update_series(database: Session, series: Series, status: Status):
+def update_series(database: Session, series: Series, console: Console):
     settings_handler = get_settings_handler(series.type, load=False)
     settings = settings_handler(series.settings)
 
     requests = requests_session()
     chapter_handler = get_chapter_handler(series.type)
-    for chapter in chapter_handler(requests, series, settings, status):
+    for chapter in chapter_handler(requests, series, settings, console):
         database.add(chapter)
         database.commit()
 
 
-def save_series_ebooks(database: Session, series: Series, status: Status):
+def save_series_ebooks(database: Session, series: Series, console: Console):
     for chapter in series.chapters:
-        status.update(f"Saving chapter: '{chapter.title}'")
+        console.info(f"Saving chapter: '{chapter.title}'")
         if chapter.ebook:
             continue
 
@@ -98,7 +88,7 @@ def send_series(
     database: Session,
     series: Series,
     email_client: EmailClient,
-    status: Status,
+    console: Console,
 ):
     subscribers = series.email_subscribers
     unsent_chapters = [c for c in series.chapters if c.sent_at is None]
@@ -128,7 +118,7 @@ def send_series(
             title = f"{series.name} - Chapters {block[0].number} to {block[-1].number}"
 
         titles = ", ".join([chapter.title for chapter in block])
-        status.update(f"Sending chapters: {titles}")
+        console.info(f"Sending chapters: {titles}")
 
         for subscriber in subscribers:
             email_client.send(
@@ -142,4 +132,4 @@ def send_series(
             chapter.sent_at = pendulum.now("utc")
 
         database.commit()
-        status.update("Chapter(s) sent")
+        console.trace("Chapter(s) sent")

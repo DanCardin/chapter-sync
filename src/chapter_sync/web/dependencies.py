@@ -32,9 +32,10 @@ def chapter_sync():
 
 def database(
     chapter_sync: Annotated[base.ChapterSync, Depends(chapter_sync)],
+    alembic_config=None,
 ) -> Generator[Session, None, None]:
     url = base.database_url(chapter_sync)
-    yield from base.database(url)
+    yield from base.database(url, alembic_config=alembic_config)
 
 
 def console(

@@ -91,7 +91,7 @@ class ChapterSync:
         cappa.Arg(short=True, long=True, action=cappa.ArgAction.count),
         Doc("Increase verbosity."),
     ] = 0
-    tty: Annotated[bool | None, cappa.Arg(long="--tty/--no-tty", hidden=True)] = None
+    tty: Annotated[bool | None, cappa.Arg(long="--tty/--no-tty")] = None
 
 
 @cappa.command(invoke="chapter_sync.sync.sync")

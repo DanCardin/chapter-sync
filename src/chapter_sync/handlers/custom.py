@@ -5,7 +5,7 @@ import cappa
 from pendulum import now
 from requests import Session
 
-from chapter_sync.console import Status
+from chapter_sync.console import Console
 from chapter_sync.request import (
     clean_emails,
     clean_namespaced_elements,
@@ -46,24 +46,24 @@ def settings_handler(raw: dict | None):
 
 
 def chapter_handler(
-    requests: Session, series: Series, settings: Settings, status: Status
+    requests: Session, series: Series, settings: Settings, console: Console
 ) -> Generator[Chapter, None, None]:
     if settings.chapter_selector:
-        yield from find_by_chapter(requests, series, settings, status=status)
+        yield from find_by_chapter(requests, series, settings, console=console)
     elif settings.next_selector:
-        yield from find_by_next(requests, series, settings, status=status)
+        yield from find_by_next(requests, series, settings, console=console)
     else:
         raise NotImplementedError()
 
 
 def find_by_chapter(
-    requests: Session, series: Series, settings: Settings, status: Status
+    requests: Session, series: Series, settings: Settings, console: Console
 ) -> Generator[Chapter, None, None]:
     assert settings.chapter_selector
 
     url = series.url
 
-    soup = get_soup(requests, url, status=status)
+    soup = get_soup(requests, url, console=console)
 
     assert soup.head
     base = soup.head.base and soup.head.base.get("href") or False
@@ -86,7 +86,7 @@ def find_by_chapter(
             series,
             settings,
             chapter_url,
-            status=status,
+            console=console,
             title=chapter_link.string,
             number=existing_chapter.number + 1 if existing_chapter else 1,
         ):
@@ -95,7 +95,7 @@ def find_by_chapter(
 
 
 def find_by_next(
-    requests: Session, series: Series, settings: Settings, status: Status
+    requests: Session, series: Series, settings: Settings, console: Console
 ) -> Generator[Chapter, None, None]:
     assert settings.next_selector
 
@@ -114,7 +114,7 @@ def find_by_next(
                 series,
                 settings,
                 next_url,
-                status=status,
+                console=console,
                 number=last_chapter.number + 1 if last_chapter else 1,
             ):
                 yield chapter
@@ -122,7 +122,7 @@ def find_by_next(
 
         existing_urls.add(next_url)
 
-        soup = get_soup(requests, next_url, status=status)
+        soup = get_soup(requests, next_url, console=console)
 
         assert soup.head
         base = soup.head.base and soup.head.base.get("href") or False
@@ -144,12 +144,12 @@ def _collect_chapter(
     settings: Settings,
     url: str,
     *,
-    status: Status,
+    console: Console,
     title: str | None = None,
     number: int = 1,
 ):
-    status.update(f"Extracting chapter at '{url}'")
-    soup = get_soup(requests, url, status=status)
+    console.trace(f"Extracting chapter at '{url}'")
+    soup = get_soup(requests, url, console=console)
 
     if not soup.select(settings.content_selector):
         return

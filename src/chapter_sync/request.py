@@ -7,7 +7,7 @@ import pendulum
 from bs4 import BeautifulSoup, Tag
 from requests import Session
 
-from chapter_sync.console import Status
+from chapter_sync.console import Console
 
 RE_NAMESPACED_ELEMENT = re.compile(r"[a-z]+:[a-z]+")
 
@@ -20,7 +20,7 @@ def get_soup(
     session: Session,
     url,
     *,
-    status: Status | None = None,
+    console: Console | None = None,
     method="html5lib",
     retry=3,
     retry_delay=10,
@@ -40,8 +40,8 @@ def get_soup(
             if "Retry-After" in page.headers:
                 real_delay = int(page.headers["Retry-After"])
 
-            if status:
-                status.update(
+            if console:
+                console.trace(
                     f"Load failed: waiting {real_delay} to retry ({page.status_code}: {page.url})",
                 )
             time.sleep(real_delay)
@@ -49,7 +49,7 @@ def get_soup(
             return get_soup(
                 session,
                 url,
-                status=status,
+                console=console,
                 method=method,
                 retry=retry - 1,
                 retry_delay=retry_delay,
