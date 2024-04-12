@@ -4,17 +4,17 @@ import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from chapter_sync.cli.base import alembic_config, database_url
-from chapter_sync.web.dependencies import chapter_sync, database
+from chapter_sync.cli.base import ChapterSync, alembic_config, database_url
+from chapter_sync.web.dependencies import database
 from chapter_sync.web.routes import routes
 
 
-def create_app(routes=routes):
+def create_app(command: ChapterSync, routes=routes):
     logging.basicConfig(level="INFO")
 
-    boostrap_db()
+    boostrap_db(command)
 
-    app = FastAPI()
+    app = FastAPI(command=command)
 
     static_dir = importlib.resources.files("chapter_sync.web.static")
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
@@ -29,8 +29,7 @@ def create_app(routes=routes):
     return app
 
 
-def boostrap_db():
-    app = chapter_sync()
-    url = database_url(app)
+def boostrap_db(command: ChapterSync):
+    url = database_url(command)
     alembic = alembic_config(url)
-    list(database(app, alembic))
+    list(database(command, alembic))

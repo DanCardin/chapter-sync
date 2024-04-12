@@ -7,7 +7,7 @@ from typing import Annotated
 
 import pendulum
 from dataclass_settings import Env, load_settings
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -26,8 +26,8 @@ def config():
     return load_settings(Config)
 
 
-def chapter_sync():
-    return base.ChapterSync(None)
+def chapter_sync(request: Request) -> base.ChapterSync:
+    return request.app.extra["command"]
 
 
 def database(

@@ -46,7 +46,7 @@ run:
 	chapter-sync watch
 
 run-web:
-	uvicorn chapter_sync.web.__main__:create_app --reload
+	chapter-sync web
 
 init-css:
 	npm install tailwindcss flowbite
