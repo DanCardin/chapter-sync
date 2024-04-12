@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1
+## 0.3
+
+### 0.3.3
+
+- fix: Issue in docker where database was not being written to the correct location.
 
 ### 0.3.1
 

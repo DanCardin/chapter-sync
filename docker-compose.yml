@@ -4,16 +4,22 @@ name: chapter-sync
 services:
   watch:
     image: dancardin/chapter-sync:latest
+    build:
+      context: .
     restart: always
     command: watch
     volumes:
-      - "${PWD}:/data"
+      - "./:/chapter-sync"
+      - "./data:/data"
 
   web:
     image: dancardin/chapter-sync:latest
+    build:
+      context: .
     restart: always
     command: web --host 0.0.0.0
     ports:
       - 8000:8000
     volumes:
-      - "${PWD}:/data"
+      - "./:/chapter-sync"
+      - "./data:/data"
