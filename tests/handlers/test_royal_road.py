@@ -40,8 +40,7 @@ def test_collect_chapter(requests: Session, console: Console, responses: Request
         author="RoyalRoadSeries",
     )
     settings = Settings()
-    with console.status("") as status:
-        chapter = list(chapter_handler(requests, series, settings, status))
+    chapter = list(chapter_handler(requests, series, settings, console))
 
     responses.add(responses.GET, "https://royalroad.com/series/", body=toc_content_2)
     responses.add(
@@ -52,8 +51,7 @@ def test_collect_chapter(requests: Session, console: Console, responses: Request
 
     series.chapters = chapter
 
-    with console.status("") as status:
-        chapter = list(chapter_handler(requests, series, settings, status))
+    chapter = list(chapter_handler(requests, series, settings, console))
 
     all_chapters = series.chapters + chapter
 
