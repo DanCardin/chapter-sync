@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chapter-sync"
-version = "0.3.4"
+version = "0.3.5"
 description = ""
 authors = [
     "Dan Cardin <ddcardin@gmail.com>",
@@ -33,7 +33,7 @@ chapter-sync = "chapter_sync.__main__:run"
 python = "^3.10"
 
 alembic = ">=1.9.0"
-Pillow = "^9.0.0"
+Pillow = "^10.0.0"
 beautifulsoup4 = "^4.9.3"
 cappa = ">=0.18.1"
 html5lib = "^1.1"
@@ -113,7 +113,8 @@ doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 addopts = "--doctest-modules -vv --ff --strict-markers"
 norecursedirs = ".* build dist *.egg bin --junitxml=junit.xml"
 filterwarnings = [
-  'error',
+  "error",
+  "ignore:datetime.datetime.utcfromtimestamp.*:DeprecationWarning",
 ]
 markers = [
 ]
