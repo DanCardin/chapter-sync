@@ -2,6 +2,18 @@
 
 ## 0.3
 
+### 0.3.6
+
+- fix: CLI bug (`chapter-sync` sans any subcommands)
+
+### 0.3.5
+
+- fix: Dont depend on remote chapter enumeration order in royal road.
+
+### 0.3.4
+
+- fix: Issue in web-app not respecting db location env var.
+
 ### 0.3.3
 
 - fix: Issue in docker where database was not being written to the correct location.
