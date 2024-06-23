@@ -41,7 +41,7 @@ def get_series(
     chapters = (
         db.query(Chapter)
         .where(Chapter.series_id == series_id)
-        .order_by(Chapter.number)
+        .order_by(Chapter.number.desc())
         .all()
     )
     return templates.TemplateResponse(
