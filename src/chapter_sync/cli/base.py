@@ -8,7 +8,7 @@ from typing import Annotated
 
 import cappa
 from alembic.config import Config
-from cappa.help import format_help
+from cappa.help import HelpFormatter
 from dotenv import load_dotenv
 from requests import Session as RequestsSession
 from sqlalchemy import create_engine
@@ -95,7 +95,8 @@ class ChapterSync:
     tty: Annotated[bool | None, cappa.Arg(long="--tty/--no-tty")] = None
 
     def __call__(self):
-        raise cappa.HelpExit(format_help(cappa.collect(ChapterSync), "chapter-sync"))
+        help_formatter = HelpFormatter()
+        raise cappa.HelpExit(help_formatter(cappa.collect(ChapterSync), "chapter-sync"))
 
 
 @cappa.command(invoke="chapter_sync.sync.sync")
