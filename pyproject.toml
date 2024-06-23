@@ -6,7 +6,7 @@ authors = [
     "Dan Cardin <ddcardin@gmail.com>",
 ]
 license = "Apache-2.0"
-repository = "https://github.com/dancardin/sqlalchemy-declarative-extensions"
+repository = "https://github.com/dancardin/chapter-sync"
 readme = 'README.md'
 
 keywords = [

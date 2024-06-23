@@ -1,17 +1,24 @@
+import io
 from typing import Annotated
 
 import requests
 from fastapi import Depends, Form, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_302_FOUND
 
 from chapter_sync import series as series_actions
+from chapter_sync.cli.series import Export, Send
 from chapter_sync.console import Console
+from chapter_sync.email import EmailClient
 from chapter_sync.handlers.base import HandlerTypes
 from chapter_sync.schema import Chapter, Series
-from chapter_sync.web.dependencies import console, database, templates
+from chapter_sync.web.dependencies import console, database, email_client, templates
+
+
+def find_series(db: Session, series_id: int) -> Series | None:
+    return db.query(Series).where(Series.id == series_id).one_or_none()
 
 
 def list_series(
@@ -37,7 +44,7 @@ def get_series(
     series_id: int,
     templates: Annotated[Jinja2Templates, Depends(templates)],
 ):
-    series = db.query(Series).where(Series.id == series_id).one_or_none()
+    series = find_series(db, series_id)
     chapters = (
         db.query(Chapter)
         .where(Chapter.series_id == series_id)
@@ -81,5 +88,66 @@ async def add_series(
 
     return RedirectResponse(
         url=request.url_for("list_series"),
+        status_code=HTTP_302_FOUND,
+    )
+
+
+def export(
+    request: Request,
+    db: Annotated[Session, Depends(database)],
+    console: Annotated[Console, Depends(console)],
+    series_id: int,
+):
+    series = find_series(db, series_id)
+    assert series
+
+    export = Export(series_id, force=True)
+    series_actions.export(export, db, console)
+
+    return RedirectResponse(
+        url=request.url_for(
+            "get_series",
+            series_id=series_id,
+        ),
+        status_code=HTTP_302_FOUND,
+    )
+
+
+def download(
+    db: Annotated[Session, Depends(database)],
+    series_id: int,
+):
+    series = find_series(db, series_id)
+
+    assert series
+    assert series.ebook
+    return StreamingResponse(
+        io.BytesIO(series.ebook),
+        media_type="application/epub+zip",
+        headers={"Content-Disposition": f'inline; filename="{series.filename()}"'},
+    )
+
+
+def send(
+    request: Request,
+    db: Annotated[Session, Depends(database)],
+    email_client: Annotated[EmailClient, Depends(email_client)],
+    series_id: int,
+    chapter_id: int,
+):
+    series = find_series(db, series_id)
+
+    assert series
+    assert series.ebook
+
+    send = Send(series_id)
+    series_actions.send(send, db, email_client)
+
+    return RedirectResponse(
+        url=request.url_for(
+            "get_chapter",
+            series_id=series_id,
+            chapter_id=chapter_id,
+        ),
         status_code=HTTP_302_FOUND,
     )

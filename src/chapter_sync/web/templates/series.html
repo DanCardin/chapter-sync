@@ -5,6 +5,28 @@
   {% else %}
     <article>
       <h1>{{ series.title }}</h1>
+      <fieldset class="grid">
+        {% if series.ebook %}
+          <form method="post" action="/series/{{ series.id }}/ebook">
+            <button type="submit" class="outline">
+              {{ macros.icon_sync(size=24) }}
+              Force Send
+            </button>
+          </form>
+          <form method="get" action="/series/{{ series.id }}/ebook">
+            <button type="submit">
+              {{ macros.icon_download(size=24) }}
+              Download
+            </button>
+          </form>
+        {% endif %}
+        <form method="post" action="/series/{{ series.id }}/export">
+          <button type="submit" class="secondary">
+            {{ macros.icon_new(size=24) }}
+            Create Epub
+          </button>
+        </form>
+      </fieldset>
       <table>
         <thead>
           <tr>

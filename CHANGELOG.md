@@ -2,6 +2,10 @@
 
 ## 0.3
 
+- feat: Add a way to force download/send ebook for the whole series.
+- fix: Reverse the chapter order to be reverse chronological.
+- fix: Upgrade cappa.
+
 ### 0.3.7
 
 - fix: Reduce vertical space used by frontmatter.

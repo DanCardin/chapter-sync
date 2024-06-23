@@ -47,6 +47,21 @@ routes: list[Route] = [
         "endpoint": series.get_series,
     },
     {
+        "method": "POST",
+        "path": "/series/{series_id}/export",
+        "endpoint": series.export,
+    },
+    {
+        "method": "GET",
+        "path": "/series/{series_id}/ebook",
+        "endpoint": series.download,
+    },
+    {
+        "method": "POST",
+        "path": "/series/{series_id}/ebook",
+        "endpoint": series.send,
+    },
+    {
         "method": "GET",
         "path": "/series/{series_id}/chapter/{chapter_id}",
         "endpoint": chapter.get_chapter,

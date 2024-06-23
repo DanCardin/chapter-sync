@@ -10,9 +10,10 @@ from requests import Session as RequestsSession
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from chapter_sync.cli.base import console, database, requests
-from chapter_sync.cli.series import Add, Export, List, Remove, Set, Subscribe
+from chapter_sync.cli.base import console, database, email_client, requests
+from chapter_sync.cli.series import Add, Export, List, Remove, Send, Set, Subscribe
 from chapter_sync.console import Console
+from chapter_sync.email import EmailClient
 from chapter_sync.epub import Epub
 from chapter_sync.handlers import detect, get_infer_handler, get_settings_handler
 from chapter_sync.schema import EmailSubscription, Series
@@ -176,6 +177,25 @@ def export(
 
     Path(file).write_bytes(ebook)
     console.info(f"Exported '{file}'")
+
+
+def send(
+    command: Send,
+    database: Annotated[Session, cappa.Dep(database)],
+    email_client: Annotated[EmailClient, cappa.Dep(email_client)],
+):
+    series = get_series(database, command.series)
+    ebook = series.ebook
+    assert ebook
+
+    for subscriber in series.email_subscribers:
+        title = series.filename()
+        email_client.send(
+            subject=title,
+            to=subscriber.email,
+            filename=title,
+            attachment=ebook,
+        )
 
 
 def set_series(
