@@ -2,6 +2,12 @@
 
 ## 0.3
 
+### 0.3.7
+
+- feat: Add a way to force download/send ebook for the whole series.
+- fix: Reverse the chapter order to be reverse chronological.
+- fix: Upgrade cappa.
+
 ### 0.3.6
 
 - fix: CLI bug (`chapter-sync` sans any subcommands)
