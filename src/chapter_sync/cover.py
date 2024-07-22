@@ -55,7 +55,7 @@ def make_cover_image(
     title: str, author: str | None = None, options: CoverOptions = CoverOptions()
 ):
     title_font = select_font(options.font_name, size=options.font_size)
-    author_font = select_font(options.font_name, size=options.font_size - 2)
+    author_font = select_font(options.font_name, size=options.font_size - 4)
 
     img = Image.new("RGBA", (options.width, options.height), options.bg_color)
     draw = ImageDraw.Draw(img)
@@ -84,4 +84,4 @@ def select_font(preferred, *, size: int = 10):
         with contextlib.suppress(OSError):
             return ImageFont.truetype(font=font, size=size)
 
-    return ImageFont.load_default()
+    return ImageFont.load_default(size=size)
