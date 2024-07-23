@@ -47,25 +47,21 @@ default_footnotes_template = """<?xml version="1.0" encoding="UTF-8" standalone=
 
 default_frontmatter_template = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
+  <head>
     <title>Front Matter</title>
     <link rel="stylesheet" type="text/css" href="Styles/base.css" />
-</head>
-<body>
-<div class="cover title">
-    <h1>{title}<br />By {author}</h1>
-    <dl>
-        <dt>Source</dt>
-        <dd>{unique_id}</dd>
-        <dt>Started</dt>
-        <dd>{started}</dd>
-        <dt>Updated</dt>
-        <dd>{updated}</dd>
-        <dt>Downloaded on</dt>
-        <dd>{now:%Y-%m-%d}</dd>
-    </dl>
-</div>
-</body>
+  </head>
+  <body>
+    <div class="cover title">
+      <h1>{title}</h1>
+      <h2>By {author}</h2>
+      <ul>
+        <li>Started: {started}</li>
+        <li>Updated: {updated}</li>
+        <li>Downloaded: {downloaded}</li>
+      </ul>
+    </div>
+  </body>
 </html>
 """
 
@@ -132,7 +128,7 @@ class Epub:
     ) -> Epub:
         return cls(
             title=series.title,
-            author=series.author or "Unkown",
+            author=series.author or "Unknown",
             id=str(series.id),
             cover=EpubFile(
                 id="cover_html",
@@ -160,10 +156,9 @@ class Epub:
                 title="Front Matter",
                 path="frontmatter.html",
                 contents=cls.frontmatter_template.format(
-                    now=datetime.datetime.now(),
-                    unique_id=series.id,
-                    started=series.created_at,
-                    updated=series.last_built_at,
+                    downloaded=datetime.datetime.now(),
+                    started=series.created_at or "Unknown",
+                    updated=series.last_built_at or "Unknown",
                     title=series.title,
                     author=series.author,
                 ),

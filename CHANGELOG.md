@@ -2,6 +2,11 @@
 
 ## 0.3
 
+### 0.3.7
+
+- fix: Reduce vertical space used by frontmatter.
+- fix: Supply font size when font is defaulted.
+
 ### 0.3.6
 
 - fix: CLI bug (`chapter-sync` sans any subcommands)
