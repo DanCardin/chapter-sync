@@ -52,9 +52,9 @@ jobs:
         run: poetry run make test
 
       - name: Store test result artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          path: coverage.xml
+          path: coverage-${{ matrix.python-version }}.xml
 
       - uses: codecov/codecov-action@v3
         with:
