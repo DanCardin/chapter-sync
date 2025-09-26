@@ -1,10 +1,8 @@
 import re
 import time
 import urllib.parse
-from typing import cast
 
-import pendulum
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from requests import Session
 
 from chapter_sync.console import Console
@@ -60,8 +58,11 @@ def get_soup(
     return BeautifulSoup(page.text, method)
 
 
-def join_path(*segments):
-    return urllib.parse.urljoin(*segments)
+def join_path(left: str | None, right: str):
+    if left is None:
+        return right
+
+    return urllib.parse.urljoin(left, right)
 
 
 def clean_namespaced_elements(soup: BeautifulSoup):
@@ -87,20 +88,3 @@ def clean_emails(soup: BeautifulSoup):
 def strip_colors(soup: BeautifulSoup):
     for tag in soup.find_all(style=re.compile(r"(?:color|background)\s*:")):
         tag["style"] = re.sub(r"(?:color|background)\s*:[^;]+;?", "", tag["style"])
-
-
-def published_at(soup: BeautifulSoup) -> pendulum.DateTime | None:
-    dt_string = None
-
-    published_time = soup.find("meta", {"property": "article:published_time"})
-    if published_time:
-        assert isinstance(published_time, Tag)
-        dt_string = str(published_time["content"])
-
-    if not dt_string:
-        return None
-
-    try:
-        return cast(pendulum.DateTime, pendulum.parse(dt_string))
-    except Exception:
-        return None

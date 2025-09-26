@@ -2,23 +2,17 @@ import re
 from collections.abc import Generator
 from dataclasses import dataclass
 
-import pendulum
 from requests import Session
 
 from chapter_sync.console import Console
-from chapter_sync.request import (
-    clean_emails,
-    clean_namespaced_elements,
-    get_soup,
-    join_path,
-    strip_colors,
-)
+from chapter_sync.handlers import custom
+from chapter_sync.request import get_soup
 from chapter_sync.schema import Chapter, Series
 
 
 @dataclass
 class Settings:
-    ...
+    volume_id: str | None = None
 
 
 def detect(url: str) -> bool:
@@ -48,77 +42,24 @@ def settings_handler(raw: dict | None):
 def chapter_handler(
     requests: Session, series: Series, settings: Settings, console: Console
 ) -> Generator[Chapter, None, None]:
-    # TODO: It's likely most kinds of sites can be handled in terms of the "custom" handler
-    #       based on TOC. The main drawback would be things like login requirements, or
-    #       the below extra cleaning bits. A system of callbacks for cleaning could be the most
-    #       straghtforward way. And login could be handled by the requests session input.
-    url = series.url
+    chapter_selector = "#chapters tbody tr[data-url]"
+    if settings.volume_id:
+        chapter_selector += f'[data-volume-id="{settings.volume_id}"]'
 
-    soup = get_soup(requests, url, console=console)
-
-    existing_chapters = {c.url: c for c in series.chapters}
-    existing_chapter_number = -1
-    if len(series.chapters) > 0:
-        existing_chapter_number = series.chapters[-1].number
-
-    chapter_elements = soup.select("#chapters tbody tr[data-url]")
-    for number, chapter in enumerate(chapter_elements, start=1):
-        chapter_url = join_path(series.url, str(chapter.get("data-url")))
-
-        if chapter_url in existing_chapters:
-            continue
-
-        new_chapter_number = number
-        if existing_chapter_number > 0:
-            new_chapter_number = existing_chapter_number + 1
-
-        title = chapter.find("a", href=True).string.strip()  # type: ignore
-        yield _collect_chapter(
-            requests,
-            series,
-            chapter_url,
-            console=console,
-            title=title,
-            number=new_chapter_number,
-        )
-        existing_chapter_number = new_chapter_number
-
-
-def _collect_chapter(
-    requests: Session,
-    series: Series,
-    url: str,
-    *,
-    console: Console,
-    title: str | None = None,
-    number: int = 1,
-):
-    console.trace(f"Extracting chapter at '{url}'")
-    soup = get_soup(requests, url, console=console)
-
-    clean_namespaced_elements(soup)
-    clean_emails(soup)
-    strip_colors(soup)
-    strip_spoilers(soup)
-
-    content = soup.find("div", class_="chapter-content")
-    strip_display_none_content(soup, content)
-
-    published_at = pendulum.from_timestamp(
-        int(soup.find(class_="profile-info").find("time").get("unixtime"))  # type: ignore
+    custom_settings = custom.Settings(
+        chapter_selector=chapter_selector,
+        chapter_link_selector="data-url",
+        chapter_title_selector="td a",
+        content_selector="div.chapter-content",
+        content_apply=[strip_spoilers, strip_display_none_content],
+        published_value_selector=("i.fa.fa-calendar + time", "datetime"),
+        url_base_value_selector=('meta[property="og:url"]', "content"),
     )
 
-    return Chapter(
-        series_id=series.id,
-        title=title,
-        url=url,
-        number=number,
-        content=str(content),
-        published_at=published_at,
-    )
+    yield from custom.find_by_chapter(requests, series, custom_settings, console)
 
 
-def strip_display_none_content(soup, content):
+def strip_display_none_content(soup):
     # Royalroad has started inserting "this was stolen" notices into its
     # HTML, and hiding them with CSS. Currently the CSS is very easy to
     # find, so do so and filter them out.
@@ -128,7 +69,7 @@ def strip_display_none_content(soup, content):
             continue
 
         css_class = match.group(1)
-        for warning in content.find_all(class_=css_class):
+        for warning in soup.find_all(class_=css_class):
             warning.decompose()
 
 
