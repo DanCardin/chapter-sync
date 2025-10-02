@@ -142,6 +142,19 @@ class List:
     ] = False
 
 
+@cappa.command(invoke="chapter_sync.series.send")
+@dataclass
+class Send:
+    """Send the whole book to all subscribers."""
+
+    series: Annotated[int, Doc("The 'id' of the series to send the ebook for.")]
+    subscribers: Annotated[
+        list[int] | None,
+        Doc("The 'number' of the chapter to send."),
+        cappa.Arg(short=True, long=True),
+    ] = None
+
+
 @cappa.command(invoke="chapter_sync.series.set_series")
 @dataclass
 class Set:

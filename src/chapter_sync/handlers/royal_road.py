@@ -18,7 +18,7 @@ from chapter_sync.schema import Chapter, Series
 
 @dataclass
 class Settings:
-    ...
+    volume_id: str | None = None
 
 
 def detect(url: str) -> bool:
@@ -63,6 +63,11 @@ def chapter_handler(
 
     chapter_elements = soup.select("#chapters tbody tr[data-url]")
     for number, chapter in enumerate(chapter_elements, start=1):
+        if settings.volume_id:
+            chapter_volume_id = chapter.get("data-volume-id")
+            if chapter_volume_id != settings.volume_id:
+                continue
+
         chapter_url = join_path(series.url, str(chapter.get("data-url")))
 
         if chapter_url in existing_chapters:

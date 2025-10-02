@@ -97,7 +97,7 @@ def set_chapter(
 ):
     if command.number is None and not command.all:
         raise cappa.Exit(
-            "If no chapter number is supplied, the `--all` flag must be explictly given",
+            "If no chapter number is supplied, the `--all` flag must be explicitly given",
             code=1,
         )
 
