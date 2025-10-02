@@ -45,12 +45,8 @@ def get_series(
     templates: Annotated[Jinja2Templates, Depends(templates)],
 ):
     series = find_series(db, series_id)
-    chapters = (
-        db.query(Chapter)
-        .where(Chapter.series_id == series_id)
-        .order_by(Chapter.number.desc())
-        .all()
-    )
+    # Get chapters in reverse chronological order (most recent first)
+    chapters = list(reversed(series.get_chapters_ordered()))
     return templates.TemplateResponse(
         request=request,
         name="series.html",

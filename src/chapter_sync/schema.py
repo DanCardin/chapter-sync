@@ -79,7 +79,7 @@ class Series(Base):
     chapters: Mapped[list[Chapter]] = relationship(
         "Chapter",
         back_populates="series",
-        order_by="Chapter.number",
+        order_by="Chapter.created_at",
     )
     email_subscribers: Mapped[list[EmailSubscriber]] = relationship(
         "EmailSubscriber",
@@ -92,10 +92,46 @@ class Series(Base):
     def filename(self) -> str:
         return f"{self.title}.epub"
 
+    def get_chapters_ordered(self) -> list[Chapter]:
+        """Get chapters in correct order by following the chapter chain."""
+        if not self.chapters:
+            return []
+        
+        # Build URL to chapter mapping
+        url_to_chapter = {c.url: c for c in self.chapters}
+        
+        # Find the first chapter (one with no previous chapter)
+        first_chapter = None
+        for chapter in self.chapters:
+            if not chapter.previous_chapter_url:
+                first_chapter = chapter
+                break
+        
+        if not first_chapter:
+            # Fallback to creation order if no clear chain
+            return sorted(self.chapters, key=lambda c: c.created_at)
+        
+        # Follow the chain
+        ordered = []
+        current = first_chapter
+        visited = set()
+        
+        while current and current.url not in visited:
+            visited.add(current.url)
+            ordered.append(current)
+            
+            # Find next chapter
+            if current.next_chapter_url and current.next_chapter_url in url_to_chapter:
+                current = url_to_chapter[current.next_chapter_url]
+            else:
+                break
+                
+        return ordered
+
 
 class Chapter(Base):
     __tablename__ = "chapter"
-    __table_args__ = (UniqueConstraint("series_id", "number"),)
+    __table_args__ = (UniqueConstraint("series_id", "url"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     series_id: Mapped[int] = mapped_column(
@@ -105,7 +141,8 @@ class Chapter(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     url: Mapped[str] = mapped_column(Text, nullable=False)
 
-    number: Mapped[int] = mapped_column(Integer, nullable=False)
+    previous_chapter_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    next_chapter_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
     ebook: Mapped[bytes | None] = mapped_column(LargeBinary, default=None)

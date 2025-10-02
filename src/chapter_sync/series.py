@@ -164,7 +164,8 @@ def export(
 
     ebook = series.ebook
     if not ebook or command.force:
-        epub = Epub.from_series(series, *series.chapters).write_buffer()
+        ordered_chapters = series.get_chapters_ordered()
+        epub = Epub.from_series(series, *ordered_chapters).write_buffer()
         ebook = epub.getbuffer()
 
         if not command.no_save:

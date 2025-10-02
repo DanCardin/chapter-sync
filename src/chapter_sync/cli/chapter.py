@@ -20,7 +20,7 @@ class Export:
     """Export an epub for a chapter."""
 
     series: int
-    number: int
+    position: Annotated[int, Doc("The position of the chapter in the series (1-based)")]
 
     output: Annotated[
         str | None,
@@ -54,7 +54,7 @@ class Send:
     """Send the chapter to all subscribers."""
 
     series: Annotated[int, Doc("The 'id' of the series to list chapters for.")]
-    number: Annotated[int, Doc("The 'number' of the chapter to send.")]
+    position: Annotated[int, Doc("The position of the chapter in the series (1-based)")]
 
 
 @cappa.command(invoke="chapter_sync.chapter.set_chapter")
@@ -63,7 +63,7 @@ class Set:
     """Change attributes about the chapter manually."""
 
     series: int
-    number: int | None = None
+    position: Annotated[int | None, Doc("The position of the chapter in the series (1-based)")] = None
 
     sent: Annotated[
         bool | None,

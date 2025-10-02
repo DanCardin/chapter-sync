@@ -31,7 +31,7 @@
         <li>
           <a href="{{ chapter.url }}">Link</a>
         </li>
-        <li>Number: {{ chapter.number }}</li>
+        <li>Position: {{ chapter_position or "Unknown" }}</li>
         <li>Size:{{ "%0.f" | format(chapter.size_kb) }} Kb</li>
         <li>
           Published: <em data-tooltip="{{ chapter.published_at | format_datetime }}">{{ chapter.published_at | relative_datetime }}</em>

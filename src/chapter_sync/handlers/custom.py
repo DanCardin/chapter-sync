@@ -82,8 +82,17 @@ def find_by_chapter(
 
     existing_chapters = {c.url: c for c in series.chapters}
 
+    chapter_links = soup.select(settings.chapter_selector)
+    chapter_urls = []
+    
+    # First pass: collect all chapter URLs
+    for chapter_link in chapter_links:
+        partial_url = str(chapter_link.get(settings.chapter_link_selector))
+        chapter_url = join_path(url_base, partial_url)
+        chapter_urls.append(chapter_url)
+
     existing_chapter = None
-    for chapter_link in soup.select(settings.chapter_selector):
+    for i, chapter_link in enumerate(chapter_links):
         partial_url = str(chapter_link.get(settings.chapter_link_selector))
         chapter_url = join_path(url_base, partial_url)
 
@@ -100,6 +109,10 @@ def find_by_chapter(
             existing_chapter = existing_chapters[chapter_url]
             continue
 
+        # Determine previous and next chapter URLs
+        previous_chapter_url = chapter_urls[i - 1] if i > 0 else None
+        next_chapter_url = chapter_urls[i + 1] if i < len(chapter_urls) - 1 else None
+
         for chapter in _collect_chapter(
             requests,
             series,
@@ -107,7 +120,8 @@ def find_by_chapter(
             chapter_url,
             console=console,
             title=title,
-            number=existing_chapter.number + 1 if existing_chapter else 1,
+            previous_chapter_url=previous_chapter_url,
+            next_chapter_url=next_chapter_url,
         ):
             yield chapter
             existing_chapter = chapter
@@ -118,28 +132,56 @@ def find_by_next(
 ) -> Generator[Chapter, None, None]:
     assert settings.next_selector
 
+    # Get the last chapter in the chain (one without next_chapter_url)
     last_chapter = None
     if series.chapters:
-        last_chapter = series.chapters[-1]
+        for chapter in series.chapters:
+            if not chapter.next_chapter_url:
+                last_chapter = chapter
+                break
+        if not last_chapter:
+            last_chapter = series.chapters[-1]  # Fallback to most recent
 
     next_url = last_chapter.url if last_chapter else series.url
 
     existing_urls = {c.url for c in series.chapters}
+    previous_url = last_chapter.url if last_chapter else None
 
     while next_url:
         if next_url not in existing_urls:
+            # Get the next chapter URL by looking at the page
+            soup = get_soup(requests, next_url, console=console)
+            url_base = get_url_base(soup, settings)
+            
+            next_link = soup.select(settings.next_selector)
+            following_url = None
+            if next_link:
+                next_link_url = str(next_link[0].get("href"))
+                if url_base:
+                    next_link_url = join_path(url_base, next_link_url)
+                following_url = join_path(next_url, next_link_url)
+
             for chapter in _collect_chapter(
                 requests,
                 series,
                 settings,
                 next_url,
                 console=console,
-                number=last_chapter.number + 1 if last_chapter else 1,
+                previous_chapter_url=previous_url,
+                next_chapter_url=following_url,
             ):
                 yield chapter
                 last_chapter = chapter
+                
+                # Update the previous chapter's next_chapter_url if it exists
+                if previous_url and previous_url != next_url:
+                    for prev_chapter in series.chapters:
+                        if prev_chapter.url == previous_url and not prev_chapter.next_chapter_url:
+                            prev_chapter.next_chapter_url = next_url
+                            break
 
         existing_urls.add(next_url)
+        previous_url = next_url
 
         soup = get_soup(requests, next_url, console=console)
         url_base = get_url_base(soup, settings)
@@ -166,7 +208,8 @@ def _collect_chapter(
     *,
     console: Console,
     title: str | None = None,
-    number: int = 1,
+    previous_chapter_url: str | None = None,
+    next_chapter_url: str | None = None,
 ):
     console.trace(f"Extracting chapter at '{url}'")
     soup = get_soup(requests, url, console=console)
@@ -204,7 +247,8 @@ def _collect_chapter(
             series_id=series.id,
             title=title,
             url=url,
-            number=number,
+            previous_chapter_url=previous_chapter_url,
+            next_chapter_url=next_chapter_url,
             content=content.prettify(),
             published_at=get_published_at(soup, settings) or time,
             created_at=time,

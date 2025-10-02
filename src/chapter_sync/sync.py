@@ -65,20 +65,70 @@ def update_series(database: Session, series: Series, console: Console):
     settings_handler = get_settings_handler(series.type, load=False)
     settings = settings_handler(series.settings)
 
+    # Check for chapters without next_chapter_url (potentially incomplete chains)
+    chapters_without_next = [c for c in series.chapters if not c.next_chapter_url]
+    if chapters_without_next:
+        console.info(f"Found {len(chapters_without_next)} chapters without next_chapter_url, re-syncing to update links")
+
     requests = requests_session()
     chapter_handler = get_chapter_handler(series.type)
     for chapter in chapter_handler(requests, series, settings, console):
         database.add(chapter)
         database.commit()
+    
+    # After sync, check for broken chains
+    detect_broken_chains(series, console)
+
+
+def detect_broken_chains(series: Series, console: Console):
+    """Detect and report broken chapter chains."""
+    if not series.chapters:
+        return
+    
+    url_to_chapter = {c.url: c for c in series.chapters}
+    
+    # Find chapters that reference non-existent chapters
+    broken_references = []
+    for chapter in series.chapters:
+        if chapter.previous_chapter_url and chapter.previous_chapter_url not in url_to_chapter:
+            broken_references.append(f"Chapter '{chapter.title}' references missing previous chapter: {chapter.previous_chapter_url}")
+        if chapter.next_chapter_url and chapter.next_chapter_url not in url_to_chapter:
+            broken_references.append(f"Chapter '{chapter.title}' references missing next chapter: {chapter.next_chapter_url}")
+    
+    # Find orphaned chapters (not referenced by any other chapter)
+    referenced_urls = set()
+    for chapter in series.chapters:
+        if chapter.previous_chapter_url:
+            referenced_urls.add(chapter.previous_chapter_url)
+        if chapter.next_chapter_url:
+            referenced_urls.add(chapter.next_chapter_url)
+    
+    # Find chapters without previous that aren't the start of the chain
+    first_chapters = [c for c in series.chapters if not c.previous_chapter_url]
+    if len(first_chapters) > 1:
+        console.warning(f"Found {len(first_chapters)} chapters without previous_chapter_url - may indicate multiple broken chains")
+    
+    # Find chapters without next that aren't the end of the chain  
+    last_chapters = [c for c in series.chapters if not c.next_chapter_url]
+    if len(last_chapters) > 1:
+        console.warning(f"Found {len(last_chapters)} chapters without next_chapter_url - may indicate multiple broken chains or incomplete sync")
+    
+    if broken_references:
+        console.warning("Broken chapter references detected:")
+        for ref in broken_references:
+            console.warning(f"  - {ref}")
 
 
 def save_series_ebooks(database: Session, series: Series, console: Console):
-    for chapter in series.chapters:
+    ordered_chapters = series.get_chapters_ordered()
+    for chapter in ordered_chapters:
         console.info(f"Saving chapter: '{chapter.title}'")
         if chapter.ebook:
             continue
 
-        ebook = Epub.from_series(series, chapter).write_buffer()
+        # Get chapter position in the ordered list to pass correct chapter number
+        chapter_position = ordered_chapters.index(chapter) + 1
+        ebook = Epub.from_series(series, chapter, chapter_position=chapter_position).write_buffer()
         chapter.ebook = ebook.getbuffer()
         database.commit()
 
@@ -91,17 +141,29 @@ def send_series(
     console: Console,
 ):
     subscribers = series.email_subscribers
-    unsent_chapters = [c for c in series.chapters if c.sent_at is None]
+    ordered_chapters = series.get_chapters_ordered()
+    unsent_chapters = [c for c in ordered_chapters if c.sent_at is None]
 
     if command.contiguous_chapters:
-        last_chapter = -1
+        # Build contiguous blocks based on chapter chain
         contiguous_blocks: list[list[Chapter]] = []
+        current_block = []
+        
         for chapter in unsent_chapters:
-            if chapter.number == last_chapter + 1:
-                contiguous_blocks[-1].append(chapter)
+            if not current_block:
+                current_block = [chapter]
             else:
-                contiguous_blocks.append([chapter])
-            last_chapter = chapter.number
+                # Check if this chapter follows the previous one
+                prev_chapter = current_block[-1]
+                if prev_chapter.next_chapter_url == chapter.url:
+                    current_block.append(chapter)
+                else:
+                    # Start new block
+                    contiguous_blocks.append(current_block)
+                    current_block = [chapter]
+        
+        if current_block:
+            contiguous_blocks.append(current_block)
     else:
         contiguous_blocks = [[c] for c in unsent_chapters]
 
@@ -115,7 +177,10 @@ def send_series(
             title = chapter.filename()
         else:
             ebook = Epub.from_series(series, *block).write_buffer().read()
-            title = f"{series.name} - Chapters {block[0].number} to {block[-1].number}"
+            if len(block) > 1:
+                title = f"{series.name} - {block[0].title} to {block[-1].title}"
+            else:
+                title = f"{series.name} - {block[0].title}"
 
         titles = ", ".join([chapter.title for chapter in block])
         console.info(f"Sending chapters: {titles}")

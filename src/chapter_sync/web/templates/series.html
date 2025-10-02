@@ -39,7 +39,7 @@
         <tbody>
           {% for c in chapter_list %}
             <tr>
-              <td>{{ c.number }}</td>
+              <td>{{ loop.revindex }}</td>
               <th scope="row">
                 <a href="/series/{{ c.series_id }}/chapter/{{ c.id }}">{{ c.title }}</a>
               </th>

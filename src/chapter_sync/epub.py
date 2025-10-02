@@ -125,6 +125,7 @@ class Epub:
         cls,
         series: Series,
         *chapters: Chapter,
+        chapter_position: int | None = None,
     ) -> Epub:
         return cls(
             title=series.title,
@@ -171,15 +172,15 @@ class Epub:
             ),
             chapters=[
                 EpubFile(
-                    id=f"chapter_{chapter.number}",
+                    id=f"chapter_{chapter_position if chapter_position and len(chapters) == 1 else i+1}",
                     title=chapter.title,
-                    path=f"chapter/{chapter.number}.html",
+                    path=f"chapter/{chapter_position if chapter_position and len(chapters) == 1 else i+1}.html",
                     contents=cls.chapter_template.format(
                         title=normalize(chapter.title, escape_html=True),
                         text=normalize(chapter.content),
                     ),
                 )
-                for chapter in chapters
+                for i, chapter in enumerate(chapters)
             ],
         )
 

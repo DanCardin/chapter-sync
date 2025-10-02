@@ -33,12 +33,23 @@ def get_chapter(
     chapter_id: int,
 ):
     chapter = find_chapter(db, series_id, chapter_id)
+    
+    # Find chapter position if chapter exists
+    chapter_position = None
+    if chapter:
+        ordered_chapters = chapter.series.get_chapters_ordered()
+        try:
+            chapter_position = ordered_chapters.index(chapter) + 1
+        except ValueError:
+            chapter_position = None
+    
     return templates.TemplateResponse(
         request=request,
         name="chapter.html",
         context={
             "series": chapter and chapter.series,
             "chapter": chapter,
+            "chapter_position": chapter_position,
         },
     )
 
@@ -53,7 +64,14 @@ def export(
     chapter = find_chapter(db, series_id, chapter_id)
     assert chapter
 
-    export = Export(series_id, chapter.number, force=True)
+    # Find chapter position in the ordered chain
+    ordered_chapters = chapter.series.get_chapters_ordered()
+    try:
+        chapter_position = ordered_chapters.index(chapter) + 1
+    except ValueError:
+        chapter_position = 1  # Fallback
+    
+    export = Export(series_id, chapter_position, force=True)
     chapter_actions.export(export, db, console)
 
     return RedirectResponse(
@@ -94,7 +112,14 @@ def send(
     assert chapter
     assert chapter.ebook
 
-    send = Send(series_id, chapter.number)
+    # Find chapter position in the ordered chain
+    ordered_chapters = chapter.series.get_chapters_ordered()
+    try:
+        chapter_position = ordered_chapters.index(chapter) + 1
+    except ValueError:
+        chapter_position = 1  # Fallback
+    
+    send = Send(series_id, chapter_position)
     chapter_actions.send(send, db, email_client)
 
     return RedirectResponse(
