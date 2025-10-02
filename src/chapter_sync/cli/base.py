@@ -4,6 +4,7 @@ import importlib.resources
 import sys
 from collections.abc import Generator
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Annotated
 
 import cappa
@@ -134,6 +135,8 @@ class Sync:
             "Whether to combine unsent contiguous chapters into a single epub when sending (Default True)"
         ),
     ] = True
+
+    export_to: Annotated[Path | None, cappa.Arg(default=cappa.Env("EXPORT_TO"))] = None
 
 
 @cappa.command(invoke="chapter_sync.sync.watch")
