@@ -55,7 +55,7 @@ def sync(
             console.info(f"Updated series: '{s.name}'")
 
         if command.save:
-            save_series_ebooks(database, s, console)
+            save_series_ebooks(command, database, s, console)
 
         if command.send:
             send_series(command, database, s, email_client, console)
@@ -72,15 +72,24 @@ def update_series(database: Session, series: Series, console: Console):
         database.commit()
 
 
-def save_series_ebooks(database: Session, series: Series, console: Console):
+def save_series_ebooks(
+    command: Sync, database: Session, series: Series, console: Console
+):
     for chapter in series.chapters:
         console.info(f"Saving chapter: '{chapter.title}'")
         if chapter.ebook:
             continue
 
         ebook = Epub.from_series(series, chapter).write_buffer()
-        chapter.ebook = ebook.getbuffer()
+        chapter.ebook = ebook.getbuffer().tobytes()
         database.commit()
+
+        if command.export_to:
+            output_file = command.export_to / chapter.filename()
+            ebook = chapter.ebook
+            assert ebook is not None
+            output_file.write_bytes(ebook)
+            console.info(f"Auto-exported '{output_file}'")
 
 
 def send_series(
