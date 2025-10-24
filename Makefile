@@ -1,7 +1,7 @@
 .PHONY: install test lint format
 .DEFAULT_GOAL := help
 
-VERSION=$(shell python -c 'from importlib import metadata; print(metadata.version("chapter-sync"))')
+VERSION=$(shell uv run python -c 'from importlib import metadata; print(metadata.version("chapter-sync"))')
 
 install:
 	poetry install
@@ -25,6 +25,7 @@ format:
 docker-build:
 	docker build \
 	--target final \
+	--platform linux/amd64 \
 	-t chapter-sync \
 	.
 

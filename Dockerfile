@@ -1,7 +1,7 @@
-FROM python:3.11 as base
+FROM python:3.11-slim as base
 
 RUN apt update && \
-    apt install \
+    apt install -y \
     curl \
     libffi-dev \
     libxml2-dev \

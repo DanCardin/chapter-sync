@@ -55,7 +55,7 @@ def sync(
             console.info(f"Updated series: '{s.name}'")
 
         if command.save:
-            save_series_ebooks(command, database, s, console)
+            save_series_ebooks(database, s, console)
 
         if command.send:
             send_series(command, database, s, email_client, console)
@@ -72,24 +72,15 @@ def update_series(database: Session, series: Series, console: Console):
         database.commit()
 
 
-def save_series_ebooks(
-    command: Sync, database: Session, series: Series, console: Console
-):
+def save_series_ebooks(database: Session, series: Series, console: Console):
     for chapter in series.chapters:
-        console.info(f"Saving chapter: '{chapter.title}'")
         if chapter.ebook:
             continue
 
+        console.info(f"Saving chapter: '{chapter.title}'")
         ebook = Epub.from_series(series, chapter).write_buffer()
         chapter.ebook = ebook.getbuffer().tobytes()
         database.commit()
-
-        if command.export_to:
-            output_file = command.export_to / chapter.filename()
-            ebook = chapter.ebook
-            assert ebook is not None
-            output_file.write_bytes(ebook)
-            console.info(f"Auto-exported '{output_file}'")
 
 
 def send_series(
@@ -124,10 +115,20 @@ def send_series(
             title = chapter.filename()
         else:
             ebook = Epub.from_series(series, *block).write_buffer().read()
-            title = f"{series.name} - Chapters {block[0].number} to {block[-1].number}"
+            title = (
+                f"{series.name} - Chapters {block[0].number} to {block[-1].number}.epub"
+            )
 
         titles = ", ".join([chapter.title for chapter in block])
         console.info(f"Sending chapters: {titles}")
+
+        if command.export_to:
+            if not command.export_to.exists():
+                command.export_to.mkdir()
+
+            output_file = command.export_to / title
+            output_file.write_bytes(ebook)
+            console.info(f"Auto-exported '{output_file}'")
 
         for subscriber in subscribers:
             email_client.send(
